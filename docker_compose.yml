@@ -1,0 +1,18 @@
+version: '2'
+
+services:
+    mongo:
+        image: mongo
+        ports:
+            -"27017:27017"
+         volumes:
+          - /Users/Max/dev/mongo_data/dump:/data
+    mysql:
+        image: mysql
+        ports:
+          - "3306:3306"
+        environment:
+          - MYSQL_ROOT_PASSWORD=alexandra
+        volumes:
+          - /Users/Max/dev/mysql_data:/var/lib/mysql
+
