@@ -2,11 +2,12 @@ from pymongo import MongoClient
 from User import User
 import copy
 import mysql.connector
-from sets import Set
+from pprint import pformat
 
-import csv
 
 class Importer:
+
+    download_counter = 0
 
     @staticmethod
     def user_factory(user_cursor):
@@ -30,12 +31,12 @@ class Importer:
             try:
                 u.school_type_list.append(school["type"].encode('utf-8'))
             except (TypeError,AttributeError) as err:
-                print(err)
+                print("")
 
         try:
             u.school_type = "|".join(u.school_type_list)
         except (TypeError, AttributeError) as err:
-            print(err)
+            print("")
             u.school_type = ""
 
         try:
@@ -44,7 +45,7 @@ class Importer:
 
                 u.downloads.append(doc["doc_id"])
         except TypeError as err:
-            print(err)
+            print("")
 
 
         try:
@@ -72,7 +73,7 @@ class Importer:
                 u.classes = ''
 
         except (TypeError,AttributeError) as err:
-            print(err)
+            print("")
 
         return u
 
@@ -85,6 +86,21 @@ class Importer:
 
         for r in result:
             user = self.user_factory(r)
+
+            print("User id: {0} processing ".format(user.id))
+            print("Download count is : {0}".format(len(user.downloads)))
+            print("\t")
+            print("===============================")
+            for d in user.downloads:
+
+                try:
+                    print(d)
+                except AttributeError:
+                    print("")
+
+
+            self.download_counter += len(user.downloads)
+            print("===============================")
             user_list.append(user)
 
         return user_list
@@ -97,12 +113,19 @@ class Importer:
         del user_copy.downloads
         del user_copy.download_list
 
+        print("creating array for user id: {0}".format(user_copy.id))
+
         for d in user.downloads:
-            user_copy.doc_id = d
-            user_array.append(user_copy)
+            user_copy.doc_id = copy.copy(d)
+
+            print("adding document {0}".format(user_copy.doc_id))
+
+            #necessary so that we dont populate this array with same object and keep modifying it
+            tmp_user = copy.copy(user_copy)
+
+            user_array.append(tmp_user)
 
         return user_array
-
 
     def ImportData(self):
         """Kicks off the data import """
@@ -111,7 +134,13 @@ class Importer:
 
         for u in users:
           result = self.create_user_array(u)
+
+          print('writing to mysql download data for user {0}'.format(u.id))
+          print('total of {0} records in the array'.format(len(result)))
           self.insert_data(result)
+
+        print("Done with import.....")
+        print("Imported {0} downloads so far..".format(self.download_counter))
 
     def get_cursor(self):
 
@@ -136,11 +165,13 @@ class Importer:
 
                 # print (args)
                 #create query
-                query = "INSERT INTO all_user_downloads (user_id, gender, country, schoolclasses, schools, subjects, realm, user_type, doc_id) "\
+                query = "INSERT INTO user_downloads (user_id, gender, country, schoolclasses, schools, subjects, realm, user_type, doc_id) "\
                         "VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', {7}, '{8}')".format(u.id, u.gender, u.country, u.classes, u.school_type, u.subjects, u.realm, 2, u.doc_id)
 
+                #print(query)
                 # execute it against the db
                 cursor.execute(query)
+
             #commit the result
             conn.commit()
         except UnicodeEncodeError as err:
