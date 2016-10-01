@@ -2,11 +2,14 @@ from pymongo import MongoClient
 from User import User
 import copy
 import mysql.connector
+from mongo_repo import mongoRepo
+
+from CSVExporter import CSVExporter
+
 from pprint import pformat
 
 
 class Importer:
-
     download_counter = 0
 
     @staticmethod
@@ -26,36 +29,31 @@ class Importer:
         u.school_type_list = []
         u.downloads = []
 
-        #create a clean list of school types
+        # create a clean list of school types
         for school in u.schools:
             try:
                 u.school_type_list.append(school["type"].encode('utf-8'))
-            except (TypeError,AttributeError) as err:
+            except (TypeError, AttributeError) as err:
                 print("")
 
         try:
             u.school_type = "|".join(u.school_type_list)
         except (TypeError, AttributeError) as err:
-            print("")
             u.school_type = ""
 
         try:
-        # create a list of downloaded ids
+            # create a list of downloaded ids
             for doc in u.download_list:
-
                 u.downloads.append(doc["doc_id"])
         except TypeError as err:
             print("")
 
-
         try:
-
             temp_sub = []
             for subject in u.subjects_list:
                 temp_sub.append(subject.encode('utf-8'))
 
             u.subjects = "|".join(temp_sub)
-
 
             tmp_realm = []
             for r in u.realms:
@@ -72,7 +70,7 @@ class Importer:
             except (TypeError) as err:
                 u.classes = ''
 
-        except (TypeError,AttributeError) as err:
+        except (TypeError, AttributeError) as err:
             print("")
 
         return u
@@ -81,7 +79,7 @@ class Importer:
         """Fetchs a list of premium users from mongodb """
         client = MongoClient('mongo', 27017)
         db = client.mU.vws_Users
-        result = db.find({'type': 2}).limit(10000)
+        result = db.find({'type': 2}).limit(10)
         user_list = []
 
         for r in result:
@@ -97,7 +95,6 @@ class Importer:
                     print(d)
                 except AttributeError:
                     print("")
-
 
             self.download_counter += len(user.downloads)
             print("===============================")
@@ -120,7 +117,7 @@ class Importer:
 
             print("adding document {0}".format(user_copy.doc_id))
 
-            #necessary so that we dont populate this array with same object and keep modifying it
+            # necessary so that we dont populate this array with same object and keep modifying it
             tmp_user = copy.copy(user_copy)
 
             user_array.append(tmp_user)
@@ -129,15 +126,21 @@ class Importer:
 
     def ImportData(self):
         """Kicks off the data import """
-        users  =  self.get_premium_users()
+        # users = self.get_premium_users()
+        repo = mongoRepo()
 
+        users = repo.get_premium_users()
+
+        csvExporter = CSVExporter()
 
         for u in users:
-          result = self.create_user_array(u)
+            result = self.create_user_array(u)
 
-          print('writing to mysql download data for user {0}'.format(u.id))
-          print('total of {0} records in the array'.format(len(result)))
-          self.insert_data(result)
+            print('writing to mysql download data for user {0}'.format(u.id))
+            print('total of {0} records in the array'.format(len(result)))
+            csvExporter.export_users('export.csv', result)
+
+          #  self.insert_data(result)
 
         print("Done with import.....")
         print("Imported {0} downloads so far..".format(self.download_counter))
@@ -162,20 +165,27 @@ class Importer:
             cursor = conn.cursor()
 
             for u in user_data:
-
                 # print (args)
-                #create query
-                query = "INSERT INTO user_downloads (user_id, gender, country, schoolclasses, schools, subjects, realm, user_type, doc_id) "\
-                        "VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', {7}, '{8}')".format(u.id, u.gender, u.country, u.classes, u.school_type, u.subjects, u.realm, 2, u.doc_id)
+                # create query
+                query = "INSERT INTO user_downloads (user_id, gender, country, schoolclasses, schools, subjects, realm, user_type, doc_id) " \
+                        "VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', {7}, '{8}')".format(u.id, u.gender,
+                                                                                                     u.country,
+                                                                                                     u.classes,
+                                                                                                     u.school_type,
+                                                                                                     u.subjects,
+                                                                                                     u.realm, 2,
+                                                                                                     u.doc_id)
 
-                #print(query)
+                # print(query)
                 # execute it against the db
                 cursor.execute(query)
 
-            #commit the result
+            # commit the result
             conn.commit()
         except UnicodeEncodeError as err:
             print(err)
+
+
 imp = Importer()
 imp.ImportData()
 # imp.get_sql_connection()
