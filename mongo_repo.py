@@ -85,8 +85,20 @@ class mongoRepo:
             document.title = record.get("qualifications")["title"]
             document.subtitle = record.get("qualifications")["subtitle"]
             document.issue = record.get("qualifications")["issue"]
-            document.educationLevels = record.get("qualifications")["educationlevels"]
-            document.tags = record.get("qualifications")["tags"]
+            # extract class years and scholl type
+
+            educationLevels = record.get("qualifications")["educationlevels"]
+            document.class_years = []
+            document.school_type = []
+            for level in educationLevels:
+                document.school_type += level.get("schoolType")["name"]
+                document.class_years += level.get("class_years")
+
+            document.tags = []
+            tags = record.get("qualifications")["tags"]
+            for t in tags:
+                document.tags.append(t["tag"])
+
             document.authors = record.get("qualifications")["author"]
             document.publisher = record.get("qualifications")["publishingHouse"]
             document.kind = record.get("type")
@@ -100,13 +112,14 @@ class mongoRepo:
 
         client = MongoClient('mongo', 27017)
         docs = client.mU.mU_documents
-        result = docs.find({}).limit(50)
+        result = docs.find({}).limit(100)
 
         documentList = []
         for r in result:
             document = self.document_factory(r)
             documentList.append(document)
-
+            print(document.class_years)
+            print(document.school_type)
         return documentList
 
     def get_premium_users(self):

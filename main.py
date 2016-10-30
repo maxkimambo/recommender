@@ -1,4 +1,6 @@
 from Worker import Worker
+
+
 # program workflow
 # worker Gets documents via the repo
 # worker Gets users via the repo
@@ -8,9 +10,13 @@ from Worker import Worker
 def main():
     worker = Worker()
     worker.process_document_data()
-    # worker.process_user_data()
+    worker.process_user_data()
+    worker.join_document_user_data()
+
     path = '/app/output/'
     worker.export_user_data(path + 'users.csv')
     worker.export_document_data(path + 'documents.csv')
+
+
 if __name__ == "__main__":
     main()
