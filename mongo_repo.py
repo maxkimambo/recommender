@@ -32,7 +32,7 @@ class mongoRepo:
             try:
                 u.school_type_list.append(school["type"].encode('utf-8'))
             except (TypeError, AttributeError) as err:
-                print("")
+                pass
 
         try:
             u.school_type = "|".join(u.school_type_list)
@@ -44,7 +44,7 @@ class mongoRepo:
             for doc in u.download_list:
                 u.downloads.append(doc["doc_id"])
         except TypeError as err:
-            print("")
+            pass
 
         try:
             temp_sub = []
@@ -115,8 +115,6 @@ class mongoRepo:
         for r in result:
             document = self.document_factory(r)
             documentList.append(document)
-            print(document.class_years)
-            print(document.school_type)
         return documentList
 
     def get_premium_users(self):
