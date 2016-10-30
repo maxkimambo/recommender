@@ -1,6 +1,3 @@
-import pymongo
-import pprint
-
 from pymongo import MongoClient
 from Model import User
 from Model import Document
