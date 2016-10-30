@@ -1,7 +1,9 @@
 import pymongo
+import pprint
 
 from pymongo import MongoClient
-from User import User
+from Model import User
+from Model import Document
 
 
 class mongoRepo:
@@ -12,7 +14,7 @@ class mongoRepo:
         self.users = client.mU.vws_Users
         self.docs = client.mU.mU_documents
 
-    def user_factory(self,user_cursor):
+    def user_factory(self, user_cursor):
         """Creates user object from mongo cursor"""
         u = User()
         u.id = user_cursor.get("_id")
@@ -73,21 +75,42 @@ class mongoRepo:
             print("")
 
         return u
+
+    def document_factory(self, record):
+
+        document = Document()
+
+        try:
+            document.id = record.get("_id")
+            document.title = record.get("qualifications")["title"]
+            document.subtitle = record.get("qualifications")["subtitle"]
+            document.issue = record.get("qualifications")["issue"]
+            document.educationLevels = record.get("qualifications")["educationlevels"]
+            document.tags = record.get("qualifications")["tags"]
+            document.authors = record.get("qualifications")["author"]
+            document.publisher = record.get("qualifications")["publishingHouse"]
+            document.kind = record.get("type")
+
+        except (TypeError, AttributeError) as err:
+            pass
+
+        return document
+
     def get_documents(self):
 
-       client = MongoClient('mongo', 27017)
-       docs = client.mU.mU_documents
+        client = MongoClient('mongo', 27017)
+        docs = client.mU.mU_documents
+        result = docs.find({}).limit(50)
 
-       print('fetching documents')
-       result = docs.find({}).limit(5)
+        documentList = []
+        for r in result:
+            document = self.document_factory(r)
+            documentList.append(document)
 
-       print('done')
-       for r in result:
-            print(r.get("_id"))
-
+        return documentList
 
     def get_premium_users(self):
-        """Fetchs a list of premium users from mongodb """
+        """Fetches a list of premium users from mongodb """
         client = MongoClient('mongo', 27017)
         self.users = client.mU.vws_Users
         result = self.users.find({'type': 2}).limit(10)
