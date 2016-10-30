@@ -11,10 +11,3 @@ class CSVExporter:
             writer.writeheader()
             for user in userList:
                 writer.writerow(user.__dict__)
-                # writer.writerow(user.id, user.gender,
-                #                      user.country,
-                #                      user.classes,
-                #                      user.school_type,
-                #                      user.subjects,
-                #                      user.realm, 2,
-                #                      user.doc_id)

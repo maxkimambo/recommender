@@ -73,6 +73,18 @@ class mongoRepo:
             print("")
 
         return u
+    def get_documents(self):
+
+       client = MongoClient('mongo', 27017)
+       docs = client.mU.mU_documents
+
+       print('fetching documents')
+       result = docs.find({}).limit(5)
+
+       print('done')
+       for r in result:
+            print(r.get("_id"))
+
 
     def get_premium_users(self):
         """Fetchs a list of premium users from mongodb """
