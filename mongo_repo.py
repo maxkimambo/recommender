@@ -31,7 +31,7 @@ class mongoRepo:
         for school in u.schools:
             try:
                 u.school_type_list.append(school["type"].encode('utf-8'))
-            except (TypeError, AttributeError) as err:
+            except (KeyError, TypeError, AttributeError) as err:
                 pass
 
         try:
@@ -100,7 +100,7 @@ class mongoRepo:
             document.publisher = record.get("qualifications")["publishingHouse"]
             document.kind = record.get("type")
 
-        except (TypeError, AttributeError) as err:
+        except (KeyError, TypeError, AttributeError) as err:
             pass
 
         return document
@@ -109,7 +109,7 @@ class mongoRepo:
 
         client = MongoClient('mongo', 27017)
         docs = client.mU.mU_documents
-        result = docs.find({}).limit(100)
+        result = docs.find({})
 
         documentList = []
         for r in result:
@@ -121,25 +121,25 @@ class mongoRepo:
         """Fetches a list of premium users from mongodb """
         client = MongoClient('mongo', 27017)
         self.users = client.mU.vws_Users
-        result = self.users.find({'type': 2}).limit(10)
+        result = self.users.find({'type': 2})
         user_list = []
 
         for r in result:
             user = self.user_factory(r)
 
-            print("User id: {0} processing ".format(user.id))
-            print("Download count is : {0}".format(len(user.downloads)))
-            print("\t")
-            print("===============================")
-            for d in user.downloads:
-
-                try:
-                    print(d)
-                except AttributeError:
-                    print("")
+            # print("User id: {0} processing ".format(user.id))
+            # print("Download count is : {0}".format(len(user.downloads)))
+            # print("\t")
+            # print("===============================")
+            # for d in user.downloads:
+            #
+            #     try:
+            #         # print(d)
+            #     except AttributeError:
+            #         print("")
 
             self.download_counter += len(user.downloads)
-            print("===============================")
+            # print("===============================")
             user_list.append(user)
 
         return user_list
