@@ -69,7 +69,7 @@ class mongoRepo:
                 u.classes = ''
 
         except (TypeError, AttributeError) as err:
-            print("")
+            pass
 
         return u
 
@@ -116,6 +116,17 @@ class mongoRepo:
             document = self.document_factory(r)
             documentList.append(document)
         return documentList
+
+    def get_document_ids(self):
+        client = MongoClient('mongo', 27017)
+        docs = client.mU.mU_documents
+        result = docs.find({})
+
+        document_id_list = []
+        for r in result:
+            document = self.document_factory(r)
+            document_id_list.append(document)
+        return document_id_list
 
     def get_premium_users(self):
         """Fetches a list of premium users from mongodb """
