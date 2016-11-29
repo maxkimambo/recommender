@@ -6,50 +6,95 @@ class Worker:
     repo = mongoRepo()
     users = []
     documents = []
-    exporter = CSVExporter()
 
     def process_user_data(self):
         self.users = self.repo.get_premium_users()
 
-    def export_user_data(self, path):
-        self.exporter.export_users('users.csv', self.users)
+    def get_document_properties(self, id):
+        doc = self.repo.get_document_features(id)
+        # create a dict of a doc features
+
+        # del doc.kind
+        document = {}
+        try:
+            # document["id"] = doc.id
+            document["title"] = doc.title
+            document["subtitle"] = doc.subtitle
+            # document["authors"] = doc.authors
+            document["tags"] = doc.tags
+        except (AttributeError):
+            pass
+
+        print(document)
+        return document
 
     def process_document_data(self):
-        self.documents = self.repo.get_document_ids()
-
-    def export_document_data(self, path):
-        self.exporter.export_documents('docs.csv', self.documents)
-
-    def __join_document_user_data(self, users, documents):
-        print('user count {0}'.format(len(users)))
-        print('documents count {0}'.format(len(documents)))
-
-    def join_document_user_data(self):
-        self.__join_document_user_data(self.users, self.documents)
+        self.documents = self.repo.get_documents()
+        print("got {0} documents".format(len(self.documents)))
 
     def build_product_matrix(self):
         return self.__build_product_matrix(self.users, self.documents)
 
-    def __build_product_matrix(self, users, documents):
+    def get_school_types(self):
 
+        school_types = {}
+        counter = 1
+
+        for doc in self.documents:
+            try:
+                if not school_types.get(doc.school_type):
+                    school_type = doc.school_type.strip('\r\n')
+                    school_types[school_type] = counter
+                    counter += 1
+            except AttributeError as err:
+                pass
+
+        return school_types
+
+    def get_tags(self):
+
+        tag_list = {}
+
+        for doc in self.documents:
+            tags = " ".join(doc.tags)
+            tag_list[doc.id] = tags
+            try:
+                tags = " ".join(doc.tags)
+                tag_list[doc.id] = tags
+            except TypeError:
+                pass
+
+        return tag_list
+
+    def extract_document_features(self):
+        pass
+        # for doc in self.documents:
+        # {id, title, subtitle, schoolType, class years, tags}
+
+    def __build_product_matrix(self, users, documents):
         doc_set = tuple(documents)
 
         # amazon v1 algo
         # http://www.cs.umd.edu/~samir/498/Amazon-Recommendations.pdf
-        product_matrix = {}
-        # Go throgh all products
+        product_product_matrix = {}
+
+        print("checking downloads for {0} users".format(len(users)))
+        print("checking downloads for {0} docs".format(len(doc_set)))
+
+        # Go through all products
         for doc in doc_set:
             for user in users:
                 download_set = tuple(user.downloads)
                 # find out if the user downloaded this document
                 has_downloaded = doc.id in download_set
-                print("checking document {0} for user {2} it was {1}".format(doc.id, has_downloaded, user.id))
                 if (has_downloaded):
-                    print(doc.id)
+
                     # go through other items this customer downloaded
                     # record that doc has been downloaded along with those items
                     # we will then use this info to calculate similarity between doc and other downloaded items
-                    for download in user.downloads:
-                        product_matrix[download.id] = doc.id
-
-        return product_matrix
+                    if not doc in product_product_matrix:
+                        product_product_matrix[doc] = user.downloads
+                    else:
+                        product_product_matrix[doc].append(user.downloads)
+        print("constructed produc matrix with {0} documents".format(len(product_product_matrix)))
+        return product_product_matrix

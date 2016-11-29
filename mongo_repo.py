@@ -1,10 +1,12 @@
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 from Model import User
 from Model import Document
 
 
 class mongoRepo:
     download_counter = 0
+    limit = 3000
 
     def __init__(self):
         client = MongoClient('localhost', 27017)
@@ -14,7 +16,7 @@ class mongoRepo:
     def user_factory(self, user_cursor):
         """Creates user object from mongo cursor"""
         u = User()
-        u.id = user_cursor.get("_id")
+        u.id = str(user_cursor.get("_id"))
         u.download_list = user_cursor.get("downloadList")
         u.realms = user_cursor.get("realms")
         u.school_classes = user_cursor.get("schoolclasses")
@@ -42,7 +44,7 @@ class mongoRepo:
         try:
             # create a list of downloaded ids
             for doc in u.download_list:
-                u.downloads.append(doc["doc_id"])
+                u.downloads.append(str(doc["doc_id"]))
         except TypeError as err:
             pass
 
@@ -78,7 +80,7 @@ class mongoRepo:
         document = Document()
 
         try:
-            document.id = record.get("_id")
+            document.id = str(record.get("_id"))
             document.title = record.get("qualifications")["title"]
             document.subtitle = record.get("qualifications")["subtitle"]
             document.issue = record.get("qualifications")["issue"]
@@ -86,15 +88,19 @@ class mongoRepo:
 
             educationLevels = record.get("qualifications")["educationlevels"]
             document.class_years = []
-            document.school_type = []
+            # document.school_type = []
+            document.eduLevel = educationLevels
+
             for level in educationLevels:
-                document.school_type += level.get("schoolType")["name"]
+                document.school_type = level.get("schoolType")["name"]
                 document.class_years += level.get("class_years")
 
             document.tags = []
+
             tags = record.get("qualifications")["tags"]
+
             for t in tags:
-                document.tags.append(t["tag"])
+                document.tags.append(t.get("tag"))
 
             document.authors = record.get("qualifications")["author"]
             document.publisher = record.get("qualifications")["publishingHouse"]
@@ -109,30 +115,43 @@ class mongoRepo:
 
         client = MongoClient('mongo', 27017)
         docs = client.mU.mU_documents
-        result = docs.find({})
-
+        result = docs.find({}).limit(self.limit)
         documentList = []
+        i = 0
         for r in result:
+            i=i + 1
             document = self.document_factory(r)
             documentList.append(document)
         return documentList
 
+    def get_document_features(self, id):
+        client = MongoClient('mongo', 27017)
+        docs = client.mU.mU_documents
+
+        try:
+            result = docs.find_one({'_id': ObjectId(id)})
+            doc = self.document_factory(result)
+            return doc
+        except (TypeError):
+            pass
+
     def get_document_ids(self):
         client = MongoClient('mongo', 27017)
         docs = client.mU.mU_documents
-        result = docs.find({})
+        result = docs.find({}).limit(self.limit)
 
         document_id_list = []
         for r in result:
-            document = self.document_factory(r)
+            document = r.get("_id")
             document_id_list.append(document)
         return document_id_list
 
     def get_premium_users(self):
+
         """Fetches a list of premium users from mongodb """
         client = MongoClient('mongo', 27017)
         self.users = client.mU.vws_Users
-        result = self.users.find({'type': 2})
+        result = self.users.find({'type': 2}).limit(self.limit)
         user_list = []
 
         for r in result:
@@ -145,11 +164,10 @@ class mongoRepo:
             # for d in user.downloads:
             #
             #     try:
-            #         # print(d)
+            #         print(d)
             #     except AttributeError:
-            #         print("")
-
-            self.download_counter += len(user.downloads)
+            #         pass
+            # self.download_counter += len(user.downloads)
             # print("===============================")
             user_list.append(user)
 
