@@ -25,7 +25,6 @@ class Worker:
         except (AttributeError):
             pass
 
-        print(document)
         return document
 
     def process_document_data(self):
@@ -41,17 +40,18 @@ class Worker:
         counter = 1
 
         for doc in self.documents:
+
             try:
-                if not school_types.get(doc.school_type):
-                    school_type = doc.school_type.strip('\r\n')
+                school_type = doc.school_type.strip("\r\n")
+                if not school_types.get(school_type):
                     school_types[school_type] = counter
                     counter += 1
-            except AttributeError as err:
+            except (AttributeError, NameError) as err:
                 pass
 
         return school_types
 
-    def get_tags(self):
+    def get_document_tags(self):
 
         tag_list = {}
 
@@ -66,8 +66,30 @@ class Worker:
 
         return tag_list
 
-    def extract_document_features(self):
-        pass
+    def build_document_matrix(self):
+        tags = self.get_document_tags()
+        school_types = self.get_school_types()
+
+        doc_matrix = []
+
+        for doc in self.documents:
+
+            try:
+                if not school_types.get(doc.school_type):
+                    school_type = 99
+                    tag_list = tags.get(doc.id)
+                else:
+                    school_type = school_types.get(doc.school_type)
+                    tag_list = tags.get(doc.id)
+
+            except AttributeError:
+                school_type = 99
+                tag_list = ''
+            doc_row = {'id': doc.id, 'school': school_type, 'tags': tag_list}
+
+            doc_matrix.append(doc_row)
+
+        return doc_matrix
         # for doc in self.documents:
         # {id, title, subtitle, schoolType, class years, tags}
 
