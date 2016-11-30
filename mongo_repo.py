@@ -86,6 +86,8 @@ class mongoRepo:
             document.issue = record.get("qualifications")["issue"]
             document.class_years = record.get("qualifications")["classYears"]
             document.school_type = record.get("qualifications")["schoolType"]
+            document.subject = record.get("qualifications")["subject"]
+           
             document.tags = []
             tags = record.get("qualifications")["tags"]
             for t in tags:
@@ -97,7 +99,7 @@ class mongoRepo:
 
         except (KeyError, TypeError, AttributeError) as err:
             pass
-        print(document)
+       
         return document
 
     def get_documents(self):

@@ -65,21 +65,39 @@ class Worker:
                 pass
 
         return tag_list
+    
+    def get_subjects(self): 
+
+        subject_list = {}
+        counter = 1
+
+        for doc in self.documents: 
+            doc_subject = "".join(doc.subject)
+            try: 
+                if not subject_list.get(doc_subject): 
+                    subject_list[doc_subject] = counter
+                    counter += 1
+            except AttributeError: 
+                pass
+        return subject_list
 
     def build_document_matrix(self):
+        
         tags = self.get_document_tags()
         school_types = self.get_school_types()
+        subjects = self.get_subjects() 
 
         doc_matrix = []
 
         for doc in self.documents:
-            doc_school_type = " ".join(doc.school_type)
-
+            doc_school_type = "".join(doc.school_type)
+            doc_subject = "".join(doc.subject)
             try:
                 if not school_types.get(doc_school_type):
                     school_type = 99
                     tag_list = tags.get(doc.id)
                     class_year = max(doc.class_years)
+
                 else:
                     school_type = school_types.get(doc_school_type)
                     tag_list = tags.get(doc.id)
@@ -89,7 +107,8 @@ class Worker:
                 school_type = 99
                 tag_list = ''
                 class_year = 99
-            doc_row = {'id': doc.id, 'school': school_type, 'tags': tag_list, 'class_year': class_year}
+            doc_row = {'id': doc.id,'school': doc_school_type , 'school_code': school_type, 'tags': tag_list, 
+            'class_year': class_year, 'subject': doc_subject, 'subject_code': subjects.get(doc_subject)}
 
             doc_matrix.append(doc_row)
 
