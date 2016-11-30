@@ -21,7 +21,9 @@ def main():
     # print("consturcting product matrix")
     product_matrix = worker.build_product_matrix()
     # worker.join_document_user_data()
+    tag_list = worker.get_document_tags()
 
+    schools = worker.get_school_types()
     path = '/app/output/'
     # worker.export_user_data(path + 'users.csv')
     # worker.export_document_data(path + 'documents.csv')

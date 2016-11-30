@@ -6,7 +6,7 @@ from Model import Document
 
 class mongoRepo:
     download_counter = 0
-    limit = 3000
+    limit = 100
 
     def __init__(self):
         client = MongoClient('localhost', 27017)
@@ -84,21 +84,10 @@ class mongoRepo:
             document.title = record.get("qualifications")["title"]
             document.subtitle = record.get("qualifications")["subtitle"]
             document.issue = record.get("qualifications")["issue"]
-            # extract class years and scholl type
-
-            educationLevels = record.get("qualifications")["educationlevels"]
-            document.class_years = []
-            # document.school_type = []
-            document.eduLevel = educationLevels
-
-            for level in educationLevels:
-                document.school_type = level.get("schoolType")["name"]
-                document.class_years += level.get("class_years")
-
+            document.class_years = record.get("qualifications")["classYears"]
+            document.school_type = record.get("qualifications")["schoolType"]
             document.tags = []
-
             tags = record.get("qualifications")["tags"]
-
             for t in tags:
                 document.tags.append(t.get("tag"))
 
@@ -108,18 +97,38 @@ class mongoRepo:
 
         except (KeyError, TypeError, AttributeError) as err:
             pass
-
+        print(document)
         return document
 
     def get_documents(self):
 
         client = MongoClient('mongo', 27017)
         docs = client.mU.mU_documents
-        result = docs.find({}).limit(self.limit)
+        title_filter = ['Originaldokument',
+							'Titel',
+							'Titelseite',
+							'Inhaltsverzeichnis',
+							'Inhalt',
+							'Info',
+							'EinfuerFChrung',
+							'EinfuFChung',
+							'EinfüFChung',
+							'Infoseite',
+							'Infoseiten',
+							'Quellenverzeichnis',
+							'Anhang',
+							'Glossar',
+							'Impressum',
+							'Verlaufsplanung',
+							'Verlausplanung',
+							'Literaturverzeichnis']
+
+        result = docs.find(
+            {"type": "mindItem", "status.active": True, "status.exists": True, "status.hexxlerRelease": True , "title" : {"$nin": title_filter}}).limit(self.limit)
         documentList = []
         i = 0
         for r in result:
-            i=i + 1
+            i = i + 1
             document = self.document_factory(r)
             documentList.append(document)
         return documentList
@@ -139,7 +148,6 @@ class mongoRepo:
         client = MongoClient('mongo', 27017)
         docs = client.mU.mU_documents
         result = docs.find({}).limit(self.limit)
-
         document_id_list = []
         for r in result:
             document = r.get("_id")

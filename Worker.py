@@ -42,7 +42,7 @@ class Worker:
         for doc in self.documents:
 
             try:
-                school_type = doc.school_type.strip("\r\n")
+                school_type = "".join(doc.school_type) 
                 if not school_types.get(school_type):
                     school_types[school_type] = counter
                     counter += 1
@@ -73,19 +73,23 @@ class Worker:
         doc_matrix = []
 
         for doc in self.documents:
+            doc_school_type = " ".join(doc.school_type)
 
             try:
-                if not school_types.get(doc.school_type):
+                if not school_types.get(doc_school_type):
                     school_type = 99
                     tag_list = tags.get(doc.id)
+                    class_year = max(doc.class_years)
                 else:
-                    school_type = school_types.get(doc.school_type)
+                    school_type = school_types.get(doc_school_type)
                     tag_list = tags.get(doc.id)
+                    class_year = max(doc.class_years)
 
-            except AttributeError:
+            except (AttributeError, ValueError):
                 school_type = 99
                 tag_list = ''
-            doc_row = {'id': doc.id, 'school': school_type, 'tags': tag_list}
+                class_year = 99
+            doc_row = {'id': doc.id, 'school': school_type, 'tags': tag_list, 'class_year': class_year}
 
             doc_matrix.append(doc_row)
 
