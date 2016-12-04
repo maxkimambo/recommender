@@ -6,7 +6,8 @@ from Model import Document
 
 class mongoRepo:
     download_counter = 0
-    limit = 100
+    limit = 1000
+    doc_limit = 3000
 
     def __init__(self):
         client = MongoClient('localhost', 27017)
@@ -91,7 +92,7 @@ class mongoRepo:
             document.tags = []
             tags = record.get("qualifications")["tags"]
             for t in tags:
-                document.tags.append(t.get("tag"))
+                document.tags.append(t.get("tag").lower())
 
             document.authors = record.get("qualifications")["author"]
             document.publisher = record.get("qualifications")["publishingHouse"]
@@ -126,42 +127,20 @@ class mongoRepo:
 							'Literaturverzeichnis']
 
         result = docs.find(
-            {"type": "mindItem", "status.active": True, "status.exists": True, "status.hexxlerRelease": True , "title" : {"$nin": title_filter}}).limit(self.limit)
+            {"type": "mindItem", "status.active": True, "status.exists": True, "status.hexxlerRelease": True , "title" : {"$nin": title_filter}}).limit(self.doc_limit)
         documentList = []
-        i = 0
+
         for r in result:
-            i = i + 1
             document = self.document_factory(r)
             documentList.append(document)
         return documentList
 
-    def get_document_features(self, id):
-        client = MongoClient('mongo', 27017)
-        docs = client.mU.mU_documents
-
-        try:
-            result = docs.find_one({'_id': ObjectId(id)})
-            doc = self.document_factory(result)
-            return doc
-        except (TypeError):
-            pass
-
-    def get_document_ids(self):
-        client = MongoClient('mongo', 27017)
-        docs = client.mU.mU_documents
-        result = docs.find({}).limit(self.limit)
-        document_id_list = []
-        for r in result:
-            document = r.get("_id")
-            document_id_list.append(document)
-        return document_id_list
-
-    def get_premium_users(self):
+    def get_users(self):
 
         """Fetches a list of premium users from mongodb """
         client = MongoClient('mongo', 27017)
         self.users = client.mU.vws_Users
-        result = self.users.find({'type': 2}).limit(self.limit)
+        result = self.users.find({'active': True, 'marketing.mailings.customer.doubleOptIn': 'confirmed'}).limit(self.limit)
         user_list = []
 
         for r in result:

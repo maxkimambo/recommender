@@ -11,7 +11,7 @@ def main():
     worker = Worker()
 
     print("starting to process user data")
-    #worker.process_user_data()
+    worker.process_user_data()
 
     print("starting to process document data")
     worker.process_document_data()
