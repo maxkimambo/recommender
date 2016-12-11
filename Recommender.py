@@ -16,8 +16,22 @@ class Recommender:
     worker = Worker()
 
     def prepare_item_item_data(self, product_matrix):
-        all_documents = self.worker.process_document_data();
+        print("preparing unique items")
+        pdf = pd.DataFrame(product_matrix)
+        #check for duplicates
+        pdf["is_dup"] = pdf.duplicated(["id"])
+        dupes = pdf["is_dup"].sum()
 
+        # TODO make sure that duplicate values are added to unique download count
+        print('removing {0} duplicates'.format(dupes))
+
+        unique_docs = pdf.loc[pdf['is_dup'] == False]
+
+        return unique_docs
+
+    def prepare_document_data(self, doc_row):
+
+        print(doc_row)
 
     def prepare_data(self):
 
@@ -40,6 +54,7 @@ class Recommender:
         return matrix
 
     def get_document_matrix(self, docs):
+        #dataframe docs
         coded_docs = docs[["class_year", "school_code", "subject_code"]]
         return coded_docs
 

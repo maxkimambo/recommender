@@ -1,5 +1,5 @@
 from Worker import Worker
-
+from Recommender import Recommender
 # program workflow
 # worker Gets documents via the repo
 # worker Gets users via the repo
@@ -9,6 +9,7 @@ from Worker import Worker
 def main():
     print('starting worker....')
     worker = Worker()
+    rec = Recommender()
 
     print("starting to process user data")
     worker.process_user_data()
@@ -20,6 +21,14 @@ def main():
 
     # print("consturcting product matrix")
     product_matrix = worker.build_product_matrix()
+
+    worker.get_product_matrix_data(product_matrix)
+
+        ## calculate document matrix out of all the downloads
+
+        ## compare the relationship from doc to downloads
+
+        #rec.prepare_document_data(row)
     # worker.join_document_user_data()
     tag_list = worker.get_document_tags()
 

@@ -9,10 +9,6 @@ class mongoRepo:
     limit = 1000
     doc_limit = 3000
 
-    def __init__(self):
-        client = MongoClient('localhost', 27017)
-        self.users = client.mU.vws_Users
-        self.docs = client.mU.mU_documents
 
     def user_factory(self, user_cursor):
         """Creates user object from mongo cursor"""
@@ -100,13 +96,28 @@ class mongoRepo:
 
         except (KeyError, TypeError, AttributeError) as err:
             pass
-       
+
+
         return document
+
+    def get_db(self):
+        client = MongoClient('mongo', 27017)
+        db = client.mU
+        return db
+
+
+    def get_doc_by_id(self, id):
+        db = self.get_db()
+        doc_cursor = db.mU_documents.find_one({'_id': ObjectId(id)})
+        doc = self.document_factory(doc_cursor)
+        return doc
+
+
 
     def get_documents(self):
 
-        client = MongoClient('mongo', 27017)
-        docs = client.mU.mU_documents
+        db = self.get_db()
+        docs = db.mU_documents
         title_filter = ['Originaldokument',
 							'Titel',
 							'Titelseite',
@@ -138,8 +149,8 @@ class mongoRepo:
     def get_users(self):
 
         """Fetches a list of premium users from mongodb """
-        client = MongoClient('mongo', 27017)
-        self.users = client.mU.vws_Users
+        db = self.get_db()
+        self.users = db.vws_Users
         result = self.users.find({'active': True, 'marketing.mailings.customer.doubleOptIn': 'confirmed'}).limit(self.limit)
         user_list = []
 

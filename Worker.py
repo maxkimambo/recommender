@@ -103,14 +103,73 @@ class Worker:
                 school_type = 99
                 tag_list = ''
                 class_year = 99
-            doc_row = {'id': doc.id,'school': doc_school_type , 'school_code': school_type, 'tags': tag_list, 
+            doc_row = {'id': doc.id,'school': doc_school_type, 'school_code': school_type, 'tags': tag_list,
             'class_year': class_year, 'subject': doc_subject, 'subject_code': subjects.get(doc_subject)}
 
             doc_matrix.append(doc_row)
 
         return doc_matrix
 
+    def get_product_matrix_data(self, documents):
+        """Fetches data from mongo and creates a format from which we can build a matrix"""
+
+        for doc in documents:
+            doc_id = doc.get("id")
+            print(doc_id)
+
+            downloads = doc.get("downloads")
+            print(len(downloads))
+
+            result = self.repo.get_doc_by_id(doc_id)
+
+            document_list = []
+            document_list.append(result) # main document
+
+            # fetch all the related ones
+            for d in downloads:
+                document_list.append(self.repo.get_doc_by_id(d))
+
+            print(len(document_list))
+
+        return document_list
+
+    def build_downloaded_document_matrix(self, documents):
+        """Builds a matrix on which we shall calculate similarity between the documents"""
+        tags = self.get_document_tags()
+        school_types = self.get_school_types()
+        subjects = self.get_subjects()
+        doc_matrix = []
+
+        for doc in documents:
+
+            try:
+                doc_school_type = ",".join(doc.school_type)
+                doc_subject = ",".join(doc.subject)
+
+                if not school_types.get(doc_school_type):
+                    school_type = 99
+                    tag_list = tags.get(doc.id)
+                    class_year = max(doc.class_years)
+
+                else:
+                    school_type = school_types.get(doc_school_type)
+                    tag_list = tags.get(doc.id)
+                    class_year = max(doc.class_years)
+
+            except (AttributeError, ValueError):
+                school_type = 99
+                tag_list = ''
+                class_year = 99
+            doc_row = {'id': doc.id, 'school': doc_school_type, 'school_code': school_type, 'tags': tag_list,
+                       'class_year': class_year, 'subject': doc_subject, 'subject_code': subjects.get(doc_subject)}
+
+            doc_matrix.append(doc_row)
+
+        return doc_matrix
+
+
     def __build_product_matrix(self, users, documents):
+
         doc_set = tuple(documents)
 
         if not self.users:
@@ -140,11 +199,12 @@ class Worker:
                         # record that doc has been downloaded along with those items
                         # we will then use this info to calculate similarity between doc and other downloaded items
                         # print(doc.id)
-                        if doc_row.get(doc.id):
-                           doc_row.get(doc.id).append(user.downloads)
-                        else:
-                            doc_row = {doc.id: user.downloads}
-
+                        doc_row = {"id": doc.id, "downloads": user.downloads}
+                        # if doc_row.get(doc.id):
+                        #    doc_row.get(doc.id).append(user.downloads)
+                        # else:
+                        #     doc_row = {doc.id: user.downloads}
+                        #
                         product_product_matrix.append(doc_row)
 
                 except TypeError as err:
