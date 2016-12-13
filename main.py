@@ -17,12 +17,38 @@ def main():
     print("starting to process document data")
     worker.process_document_data()
 
-    # worker.get_school_types()
+    worker.get_all_tags()
+
+    worker.get_school_types()
+
+
 
     # print("consturcting product matrix")
     product_matrix = worker.build_product_matrix()
+    documents_data  = worker.get_product_matrix_data(product_matrix)
 
-    worker.get_product_matrix_data(product_matrix)
+    for doc in documents_data:
+
+        downloaded_documents_matrix = worker.build_downloaded_document_matrix(doc)
+
+
+
+    # # we got the data in form of
+    # for d in downloaded_documents_matrix:
+    #     # we need the first document against which we shall calculate the similarity
+    #     # for each download set we try to cleanse the data
+    #     # and calculate similarity matrix
+    #     df = rec.prepare_item_item_data(d)
+    #     coded_docs_matrix = rec.get_document_matrix(df)
+    #     doc_tags_matrix = rec.get_tag_matrix(df)
+
+
+        # print(coded_docs)
+
+
+    # print(next(data_iter))
+    # print(next(data_iter))
+    # print(next(data_iter))
 
         ## calculate document matrix out of all the downloads
 

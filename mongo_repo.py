@@ -7,7 +7,7 @@ from Model import Document
 class mongoRepo:
     download_counter = 0
     limit = 1000
-    doc_limit = 3000
+    doc_limit = 1000
 
 
     def user_factory(self, user_cursor):
