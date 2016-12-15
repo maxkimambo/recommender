@@ -5,7 +5,6 @@ class Document:
         for k,v in self.__dict__.items():
             string_obj += " {0}: {1} ".format(k,v)
 
-
         return string_obj
 
 

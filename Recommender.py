@@ -47,7 +47,7 @@ class Recommender:
     #     pdf["is_dup"] = pdf.duplicated(["id"])
     #     dupes = pdf["is_dup"].sum()
     #
-    #     # TODO make sure that duplicate values are added to unique download count
+    #
     #     print('removing {0} duplicates'.format(dupes))
     #
     #     unique_docs = pdf.loc[pdf['is_dup'] == False]

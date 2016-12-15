@@ -84,8 +84,8 @@ class mongoRepo:
             document.class_years = record.get("qualifications")["classYears"]
             document.school_type = record.get("qualifications")["schoolType"]
             document.subject = record.get("qualifications")["subject"]
-           
             document.tags = []
+
             tags = record.get("qualifications")["tags"]
             for t in tags:
                 document.tags.append(t.get("tag").lower())
@@ -111,7 +111,6 @@ class mongoRepo:
         doc_cursor = db.mU_documents.find_one({'_id': ObjectId(id)})
         doc = self.document_factory(doc_cursor)
         return doc
-
 
 
     def get_documents(self):

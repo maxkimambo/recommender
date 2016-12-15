@@ -6,6 +6,8 @@ from Recommender import Recommender
 # export documents along with main attributes  to csv
 # export users to csv
 # create a dataset of which users downloaded which documents
+
+
 def main():
     print('starting worker....')
     worker = Worker()
@@ -21,15 +23,33 @@ def main():
 
     worker.get_school_types()
 
-
-
-    # print("consturcting product matrix")
+    # print("constructing product matrix")
     product_matrix = worker.build_product_matrix()
-    documents_data  = worker.get_product_matrix_data(product_matrix)
+    documents_data = worker.get_product_matrix_data(product_matrix)
 
-    for doc in documents_data:
+    def process(doc_col):
+        downloaded_documents_matrix = worker.build_downloaded_document_matrix(doc_col)
+        df = rec.get_data_frame(downloaded_documents_matrix)
 
-        downloaded_documents_matrix = worker.build_downloaded_document_matrix(doc)
+        # get just the documents
+        documents_df = rec.get_document_matrix(df)
+        # get just the tags
+        tags_df = rec.get_tag_matrix(df)
+        doc_similarity = rec.calculate_document_similarity(documents_df)
+
+
+    #TODO:
+    # drop null values from the dataframe using dropna()
+
+    # cosine similarity works
+    # do the same for the tags
+
+    # combine the two matrices
+
+    # select top 10 similar values per document
+
+    for doc_col in documents_data:
+        process(doc_col)
 
 
 

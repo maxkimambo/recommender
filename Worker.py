@@ -7,7 +7,7 @@ class Worker:
     repo = mongoRepo()
     users = []
     documents = []
-    tag_list = []
+
     def process_user_data(self):
         print('Retrieving user data ... ')
         self.users = self.repo.get_users()
@@ -45,7 +45,6 @@ class Worker:
                 tags += doc.tags
             except(AttributeError): 
                 pass
-        self.tag_list += tags
         return tags 
 
     def get_document_tags(self):
@@ -58,8 +57,7 @@ class Worker:
                 tag_list[doc.id] = tags
             except (TypeError, AttributeError):
                 pass
-        print("from tag list")
-        print(tag_list)
+
         return tag_list
     
     def get_subjects(self): 
@@ -80,6 +78,7 @@ class Worker:
     def build_document_matrix(self):
         
         tags = self.get_document_tags()
+
         school_types = self.get_school_types()
         subjects = self.get_subjects()
         doc_matrix = []
@@ -114,6 +113,7 @@ class Worker:
 
     def get_product_matrix_data(self, documents):
         """Fetches data from mongo and creates a format from which we can build a matrix"""
+        product_matrix = []
         document_list = []
         counter = 0
         for doc in documents:
@@ -125,7 +125,7 @@ class Worker:
             print(doc_id)
 
             downloads = doc.get("downloads")
-            print(len(downloads))
+            print("downloads {0}".format(len(downloads)))
 
             result = self.repo.get_doc_by_id(doc_id)
             document_list.append(result) # main document
@@ -138,7 +138,9 @@ class Worker:
             counter += 1
             yield document_list
             document_list.clear()
-
+        #     product_matrix.append(document_list)
+        #
+        # return product_matrix
 
     def build_downloaded_document_matrix(self, documents):
         """Builds a matrix on which we shall calculate similarity between the documents"""
@@ -155,30 +157,27 @@ class Worker:
 
                 if not school_types.get(doc_school_type):
                     school_type = 99
-                    tag_list = tags.get(doc.id)
-                    print("from document matrix")
-                    print(tag_list)
+
                     class_year = max(doc.class_years)
 
                 else:
                     school_type = school_types.get(doc_school_type)
-                    tag_list = tags.get(doc.id)
                     class_year = max(doc.class_years)
 
-            except (AttributeError, ValueError):
-                school_type = 99
-                tag_list = ''
-                class_year = 99
+                if subjects.get(doc_subject):
+                    # here we make sure that none of the null values from the
+                    # db get through
+                    # they are caught either via the exception e.g tags or above via if
+                    # still not clean refactor this later
+                    tag_list = tags[doc.id]
+                    doc_row = {'id': doc.id, 'school': doc_school_type, 'school_code': school_type, 'tags': tag_list,
+                           'class_year': class_year, 'subject': doc_subject, 'subject_code': subjects.get(doc_subject)}
+                    doc_matrix.append(doc_row)
 
-            try:
-                doc_row = {'id': doc.id, 'school': doc_school_type, 'school_code': school_type, 'tags': tag_list,
-                       'class_year': class_year, 'subject': doc_subject, 'subject_code': subjects.get(doc_subject)}
-                doc_matrix.append(doc_row)
-
-            except AttributeError:
+            except (AttributeError, ValueError, KeyError):
                 pass
 
-        print(len(doc_matrix))
+        print("document matrix has {0} docs".format(len(doc_matrix)))
 
         return doc_matrix
 
@@ -192,9 +191,6 @@ class Worker:
 
         if not self.documents:
             self.process_document_data()
-
-        if not self.tag_list:
-            self.get_all_tags()
 
         # amazon v1 algo
         # http://www.cs.umd.edu/~samir/498/Amazon-Recommendations.pdf
