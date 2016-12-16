@@ -170,8 +170,16 @@ class Worker:
                     # they are caught either via the exception e.g tags or above via if
                     # still not clean refactor this later
                     tag_list = tags[doc.id]
-                    doc_row = {'id': doc.id, 'school': doc_school_type, 'school_code': school_type, 'tags': tag_list,
-                           'class_year': class_year, 'subject': doc_subject, 'subject_code': subjects.get(doc_subject)}
+                    # doc_row = {'id': doc.id, 'school': doc_school_type, 'school_code': school_type,
+                    #        'class_year': class_year, 'subject': doc_subject, 'subject_code': subjects.get(doc_subject)}
+
+                    doc_row = {'id': doc.id, 'school_code': school_type,
+                               'class_year': class_year, 'subject_code': subjects.get(doc_subject)}
+
+                    for t in doc.tags:
+                        tag = t.replace(" ", "_")
+                        doc_row.update({tag: 1})   # set the value of the tag to 1
+
                     doc_matrix.append(doc_row)
 
             except (AttributeError, ValueError, KeyError):
@@ -201,7 +209,7 @@ class Worker:
 
         # Go through all products
         for doc in doc_set:
-            doc_row = {"id":doc.id, "downloads":[]}
+            doc_row = {"id": doc.id, "downloads": []}
             for user in users:
                 download_set = tuple(user.downloads)
                 # find out if the user downloaded this document
