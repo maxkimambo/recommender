@@ -169,17 +169,17 @@ class Worker:
                     # db get through
                     # they are caught either via the exception e.g tags or above via if
                     # still not clean refactor this later
-                    tag_list = tags[doc.id]
                     # doc_row = {'id': doc.id, 'school': doc_school_type, 'school_code': school_type,
                     #        'class_year': class_year, 'subject': doc_subject, 'subject_code': subjects.get(doc_subject)}
 
+                    doc_tag_list = ",".join(doc.tags)
+                    # for t in doc.tags:
+                    #     tag = t.replace(" ", "_")
+                    #     doc_row.update({tag: 1})   # set the value of the tag to 1
+                    print('--------------------------')
+                    print(doc.tag_collection)
                     doc_row = {'id': doc.id, 'school_code': school_type,
-                               'class_year': class_year, 'subject_code': subjects.get(doc_subject)}
-
-                    for t in doc.tags:
-                        tag = t.replace(" ", "_")
-                        doc_row.update({tag: 1})   # set the value of the tag to 1
-
+                               'class_year': class_year, 'subject_code': subjects.get(doc_subject), 'tags': doc.tag_collection}
                     doc_matrix.append(doc_row)
 
             except (AttributeError, ValueError, KeyError):

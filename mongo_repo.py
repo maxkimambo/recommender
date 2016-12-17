@@ -85,10 +85,13 @@ class mongoRepo:
             document.school_type = record.get("qualifications")["schoolType"]
             document.subject = record.get("qualifications")["subject"]
             document.tags = []
-
             tags = record.get("qualifications")["tags"]
+            # myList = ','.join(map(str, myList))
+            # document.tag_collection = " ".join(map(str, tags))
             for t in tags:
                 document.tags.append(t.get("tag").lower())
+
+            document.tag_collection = " ".join(map(str, document.tags))
 
             document.authors = record.get("qualifications")["author"]
             document.publisher = record.get("qualifications")["publishingHouse"]
