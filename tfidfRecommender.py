@@ -41,9 +41,11 @@ class TfidfRecommender:
         documents_data = worker.get_product_matrix_data(product_matrix)
 
         for doc_col in documents_data:
-            downloaded_documents_matrix = worker.build_downloaded_document_matrix(doc_col)
-            df = rec.get_data_frame(downloaded_documents_matrix)
-            self.process_document_collection(df)
+            # we dont want to process single item lists
+            if len(doc_col) > 2:
+                downloaded_documents_matrix = worker.build_downloaded_document_matrix(doc_col)
+                df = rec.get_data_frame(downloaded_documents_matrix)
+                self.process_document_collection(df)
 
     def process_document_collection(self, df):
         # make a dataframe based on tags only

@@ -115,11 +115,11 @@ class Worker:
         """Fetches data from mongo and creates a format from which we can build a matrix"""
         product_matrix = []
         document_list = []
-        counter = 0
+        # counter = 0
         for doc in documents:
 
-            if counter > 4:
-                break
+            # if counter > 4:
+            #     break
 
             doc_id = doc.get("id")
             # print(doc_id)
@@ -135,7 +135,7 @@ class Worker:
             for d in downloads:
                 document_list.append(self.repo.get_doc_by_id(d))
 
-            counter += 1
+            # counter += 1
             yield document_list
             document_list.clear()
         #     product_matrix.append(document_list)
