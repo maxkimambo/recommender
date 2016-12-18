@@ -1,23 +1,58 @@
-import mysql.connector
+import mysql.connector as db
+from sqlalchemy import create_engine, MetaData, TEXT, Integer, Table, Column, ForeignKey
+import pandas as pd
+
 
 class MysqlRepo:
+    def __init__(self):
+        self.conn = None
+        self.engine = None
 
     def connect(self):
-        conn = mysql.connector.connect(user='root', password='alexandra', host='mysql', database='recommender')
-        cursor = conn.cursor()
-        return cursor
-
-    def save(self, data):
-
-        query = ''
-
         try:
-            cursor = self.connect()
-
-            cursor.execute(query)
-            cursor.commit()
-
-        except TypeError as err:
+            self.conn = db.connect(user='root', password='alexandra', host='mysql', database='recommender')
+            cursor = self.conn.cursor()
+            return cursor
+        except db.Error as err:
             print(err)
 
+    def disconnect(self):
+        if self.conn:
+            self.conn.close()
 
+    def setup_db(self):
+
+        self.engine = create_engine("mysql+mysqldb://root:" + 'alexandra' + "@mysql/recommender")
+        meta = MetaData(bind=self.engine)
+
+        ### Recommendations Table ###
+        table_recommendations = Table('product_recommendations', meta,
+                                      Column('product_id', TEXT, nullable=False),
+                                      Column('related_product_id', TEXT, nullable=False),
+                                      Column('school_code', Integer, nullable=True),
+                                      Column('subject_code', Integer, nullable=True),
+                                      Column('class_year', Integer, nullable=True),
+                                      Column('tag_similarity', Integer, nullable=True),
+                                      Column('similarity', Integer, nullable=True),
+                                      Column('similarity_score', Integer, nullable=True)
+                                      )
+
+        ### Recommendations Table ###
+        related_products = Table('related_product_recommendations', meta,
+                                 Column('id', Integer, primary_key=True, autoincrement=False),
+                                 Column('product_id', TEXT, nullable=False),
+                                 Column('related_product_id', TEXT, nullable=False),
+                                 Column('school_code', Integer, nullable=True),
+                                 Column('subject_code', Integer, nullable=True),
+                                 Column('similarity', Integer, nullable=True),
+                                 Column('tag_similarity', Integer, nullable=True),
+                                 Column('similarity_score', Integer, nullable=True)
+                                 )
+        # create tables in db
+        meta.create_all(self.engine)
+
+    def populate_data(self, products):
+        self.connect()
+        products.to_sql('product_recommendations', self.conn, flavor='mysql', if_exists='replace', index=True)
+        # related_products.to_sql('related_product_recommendations', self.conn, flavor='mysql', if_exists='replace',index=True)
+        self.disconnect()

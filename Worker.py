@@ -130,7 +130,6 @@ class Worker:
             result = self.repo.get_doc_by_id(doc_id)
             document_list.append(result) # main document
 
-
             # fetch all the related ones
             for d in downloads:
                 document_list.append(self.repo.get_doc_by_id(d))
@@ -191,7 +190,7 @@ class Worker:
         product_product_matrix = []
 
         print("checking downloads for {0} users".format(len(users)))
-        print("checking downloads for {0} docs".format(len(doc_set)))
+        print("checking {0} docs".format(len(doc_set)))
 
         # Go through all products
         for doc in doc_set:

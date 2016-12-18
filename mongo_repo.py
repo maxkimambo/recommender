@@ -6,8 +6,8 @@ from Model import Document
 
 class mongoRepo:
     download_counter = 0
-    limit = 1000
-    doc_limit = 1000
+    limit = 10000
+    doc_limit = 100000
 
     def __init__(self):
         client = MongoClient('mongo', 27017)
@@ -126,7 +126,7 @@ class mongoRepo:
 							'Inhaltsverzeichnis',
 							'Inhalt',
 							'Info',
-							'EinfuerFChrung',
+							'Einfuerhrung',
 							'EinfuFChung',
 							'EinfüFChung',
 							'Infoseite',
@@ -151,7 +151,7 @@ class mongoRepo:
 
     def get_users(self):
 
-        """Fetches a list of premium users from mongodb """
+        """Fetches a list of users from mongodb """
         self.users = self.db.vws_Users
         result = self.users.find({'active': True, 'marketing.mailings.customer.doubleOptIn': 'confirmed'}).limit(self.limit)
         user_list = []

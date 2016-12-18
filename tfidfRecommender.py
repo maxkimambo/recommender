@@ -36,16 +36,19 @@ class TfidfRecommender:
 
         worker.get_school_types()
 
-        # print("constructing product matrix")
+        print("constructing product matrix")
         product_matrix = worker.build_product_matrix()
+
+
         documents_data = worker.get_product_matrix_data(product_matrix)
 
         for doc_col in documents_data:
             # we dont want to process single item lists
             if len(doc_col) > 2:
+                print("constructing document matrix. which users downloaded what...")
                 downloaded_documents_matrix = worker.build_downloaded_document_matrix(doc_col)
                 df = rec.get_data_frame(downloaded_documents_matrix)
-                self.process_document_collection(df)
+                yield self.process_document_collection(df)
 
     def process_document_collection(self, df):
         # make a dataframe based on tags only
@@ -108,6 +111,19 @@ class TfidfRecommender:
 
         document_similarity_table = document_similarity_table.sort_values("similarity_score", ascending=False)
 
-        print(self.SEPARATOR)
-        print(document_similarity_table.head(self.DOCS_TO_SHOW))
+        main_doc = document_similarity_table[0:1]
+        main_product_id = main_doc.get_value(0 ,"id")
 
+        print(self.SEPARATOR)
+        print("processed product : {0} ".format(main_product_id))
+
+        document_similarity_table["product_id"] = main_product_id
+
+        #relabel the columns
+        document_similarity_table.columns = ["related_product_id", "school_code", "subject_code",
+                                             "class_year", "tag_similarity", "similarity", "similarity_score", "product_id"]
+
+        # print(self.SEPARATOR)
+        # print(document_similarity_table.head(self.DOCS_TO_SHOW))
+
+        return document_similarity_table
