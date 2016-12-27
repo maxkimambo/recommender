@@ -4,19 +4,20 @@ from csv_exporter import CSVExporter
 
 
 class Worker:
-    repo = mongoRepo()
-    users = []
-    documents = []
+    def __init__(self):
+        self.repo = mongoRepo()
+        self.users = None
+        self.documents = None
 
     def process_user_data(self):
         print('Retrieving user data ... ')
         self.users = self.repo.get_users()
-        print('Done...')
+        print('Got info on {0} users '.format(len(self.users)))
 
     def process_document_data(self):
         print("processing document data .... ")
         self.documents = self.repo.get_documents()
-        print("got {0} documents".format(len(self.documents)))
+        print("Got {0} documents".format(len(self.documents)))
 
     def build_product_matrix(self):
         return self.__build_product_matrix(self.users, self.documents)
@@ -29,7 +30,7 @@ class Worker:
         for doc in self.documents:
 
             try:
-                school_type = ",".join(doc.school_type) 
+                school_type = ",".join(doc.school_type)
                 if not school_types.get(school_type):
                     school_types[school_type] = counter
                     counter += 1
@@ -38,14 +39,14 @@ class Worker:
 
         return school_types
 
-    def get_all_tags(self): 
+    def get_all_tags(self):
         tags = []
-        for doc in self.documents: 
-            try: 
+        for doc in self.documents:
+            try:
                 tags += doc.tags
-            except(AttributeError): 
+            except(AttributeError):
                 pass
-        return tags 
+        return tags
 
     def get_document_tags(self):
 
@@ -59,37 +60,36 @@ class Worker:
                 pass
 
         return tag_list
-    
-    def get_subjects(self): 
+
+    def get_subjects(self):
 
         subject_list = {}
         counter = 1
 
-        for doc in self.documents: 
-            try: 
+        for doc in self.documents:
+            try:
                 doc_subject = ",".join(doc.subject)
-                if not subject_list.get(doc_subject): 
+                if not subject_list.get(doc_subject):
                     subject_list[doc_subject] = counter
                     counter += 1
-            except AttributeError: 
+            except AttributeError:
                 pass
         return subject_list
 
     def build_document_matrix(self):
-        
+
         tags = self.get_document_tags()
 
         school_types = self.get_school_types()
         subjects = self.get_subjects()
         doc_matrix = []
 
-
         for doc in self.documents:
-            
+
             try:
                 doc_school_type = ",".join(doc.school_type)
                 doc_subject = ",".join(doc.subject)
-                
+
                 if not school_types.get(doc_school_type):
                     school_type = 99
                     tag_list = tags.get(doc.id)
@@ -104,8 +104,8 @@ class Worker:
                 school_type = 99
                 tag_list = ''
                 class_year = 99
-            doc_row = {'id': doc.id,'school': doc_school_type, 'school_code': school_type, 'tags': tag_list,
-            'class_year': class_year, 'subject': doc_subject, 'subject_code': subjects.get(doc_subject)}
+            doc_row = {'id': doc.id, 'school': doc_school_type, 'school_code': school_type, 'tags': tag_list,
+                       'class_year': class_year, 'subject': doc_subject, 'subject_code': subjects.get(doc_subject)}
 
             doc_matrix.append(doc_row)
 
@@ -113,6 +113,7 @@ class Worker:
 
     def get_product_matrix_data(self, documents):
         """Fetches data from mongo and creates a format from which we can build a matrix"""
+        #TODO: optimise this step we already have docs in memory
         product_matrix = []
         document_list = []
         # counter = 0
@@ -128,7 +129,7 @@ class Worker:
             # print("downloads {0}".format(len(downloads)))
 
             result = self.repo.get_doc_by_id(doc_id)
-            document_list.append(result) # main document
+            document_list.append(result)  # main document
 
             # fetch all the related ones
             for d in downloads:
@@ -137,9 +138,6 @@ class Worker:
             # counter += 1
             yield document_list
             document_list.clear()
-        #     product_matrix.append(document_list)
-        #
-        # return product_matrix
 
     def build_downloaded_document_matrix(self, documents):
         """Builds a matrix on which we shall calculate similarity between the documents"""
@@ -164,7 +162,8 @@ class Worker:
 
                 if subjects.get(doc_subject):
                     doc_row = {'id': doc.id, 'school_code': school_type,
-                               'class_year': class_year, 'subject_code': subjects.get(doc_subject), 'tags': doc.tag_collection}
+                               'class_year': class_year, 'subject_code': subjects.get(doc_subject),
+                               'tags': doc.tag_collection}
                     doc_matrix.append(doc_row)
 
             except (AttributeError, ValueError, KeyError):
@@ -173,7 +172,6 @@ class Worker:
         print("document matrix has {0} docs".format(len(doc_matrix)))
 
         return doc_matrix
-
 
     def __build_product_matrix(self, users, documents):
 
@@ -188,9 +186,7 @@ class Worker:
         # amazon v1 algo
         # http://www.cs.umd.edu/~samir/498/Amazon-Recommendations.pdf
         product_product_matrix = []
-
-        print("checking downloads for {0} users".format(len(users)))
-        print("checking {0} docs".format(len(doc_set)))
+        print("Constructing product matrix of {0} documents vs {1} users".format(len(doc_set), len(users)))
 
         # Go through all products
         for doc in doc_set:
@@ -201,7 +197,6 @@ class Worker:
                 has_downloaded = doc.id in download_set
                 try:
                     if (has_downloaded):
-
                         # go through other items this customer downloaded
                         # record that doc has been downloaded along with those items
                         # we will then use this info to calculate similarity between doc and other downloaded items
@@ -212,10 +207,9 @@ class Worker:
                     traceback.print_tb(err)
                     pass
 
-            # print("processing doc id : {0}".format(doc_row.get("id")))
+            # print("processed doc id : {0}".format(doc_row.get("id")))
             product_product_matrix.append(doc_row)
 
-        print("constructed product matrix with {0} documents".format(len(product_product_matrix)))
-
+        print("constructed product matrix of {0} documents".format(len(product_product_matrix)))
 
         return product_product_matrix

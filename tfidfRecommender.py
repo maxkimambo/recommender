@@ -45,7 +45,7 @@ class TfidfRecommender:
         for doc_col in documents_data:
             # we dont want to process single item lists
             if len(doc_col) > 2:
-                print("constructing document matrix. which users downloaded what...")
+                print("generating recommendations....")
                 downloaded_documents_matrix = worker.build_downloaded_document_matrix(doc_col)
                 df = rec.get_data_frame(downloaded_documents_matrix)
                 yield self.process_document_collection(df)
@@ -111,14 +111,17 @@ class TfidfRecommender:
 
         document_similarity_table = document_similarity_table.sort_values("similarity_score", ascending=False)
 
-        main_doc = document_similarity_table[0:1]
-        main_product_id = main_doc.get_value(0 ,"id")
+        if len(document_similarity_table.index):
+            main_doc = document_similarity_table[0:1]
 
-        print(self.SEPARATOR)
-        print("processed product : {0} ".format(main_product_id))
+            main_product_id = main_doc.get_value(0 ,"id")
 
-        document_similarity_table["product_id"] = main_product_id
+            print(self.SEPARATOR)
+            print("processed product : {0} ".format(main_product_id))
 
+            document_similarity_table["product_id"] = main_product_id
+        else :
+            document_similarity_table["product_id"] = "Dont know"
         #relabel the columns
         document_similarity_table.columns = ["related_product_id", "school_code", "subject_code",
                                              "class_year", "tag_similarity", "similarity", "similarity_score", "product_id"]

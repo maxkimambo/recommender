@@ -6,12 +6,16 @@ from Model import Document
 
 class mongoRepo:
     download_counter = 0
-    limit = 10000
-    doc_limit = 100000
+    USER_LIMIT = 10000
+    DOC_LIMIT = 100000
+
+    # try different cutoff points
+    MIN_DOWNLOADS = 50
 
     def __init__(self):
         client = MongoClient('mongo', 27017)
         self.db = client.mU
+        self.users = None
 
     def user_factory(self, user_cursor):
         """Creates user object from mongo cursor"""
@@ -106,11 +110,6 @@ class mongoRepo:
 
         return document
 
-    # def get_db(self):
-    #     client = MongoClient('mongo', 27017)
-    #     db = client.mU
-    #     return db
-
     def get_doc_by_id(self, id):
         doc_cursor = self.db.mU_documents.find_one({'_id': ObjectId(id)})
         doc = self.document_factory(doc_cursor)
@@ -118,7 +117,6 @@ class mongoRepo:
 
     def get_documents(self):
 
-        # db = self.get_db()
         docs = self.db.mU_documents
         title_filter = ['Originaldokument',
 							'Titel',
@@ -140,7 +138,7 @@ class mongoRepo:
 							'Literaturverzeichnis']
 
         result = docs.find(
-            {"type": "mindItem", "status.active": True, "status.exists": True, "status.hexxlerRelease": True , "title" : {"$nin": title_filter}}).limit(self.doc_limit)
+            {"type": "mindItem", "status.active": True, "status.exists": True, "status.hexxlerRelease": True , "title" : {"$nin": title_filter}}).limit(self.DOC_LIMIT)
         documentList = []
 
         for r in result:
@@ -150,27 +148,15 @@ class mongoRepo:
         return documentList
 
     def get_users(self):
-
         """Fetches a list of users from mongodb """
+
         self.users = self.db.vws_Users
-        result = self.users.find({'active': True, 'marketing.mailings.customer.doubleOptIn': 'confirmed'}).limit(self.limit)
+        result = self.users.find({'active': True, 'marketing.mailings.customer.doubleOptIn': 'confirmed'}).limit(self.USER_LIMIT)
         user_list = []
 
         for r in result:
             user = self.user_factory(r)
-
-            # print("User id: {0} processing ".format(user.id))
-            # print("Download count is : {0}".format(len(user.downloads)))
-            # print("\t")
-            # print("===============================")
-            # for d in user.downloads:
-            #
-            #     try:
-            #         print(d)
-            #     except AttributeError:
-            #         pass
-            # self.download_counter += len(user.downloads)
-            # print("===============================")
-            user_list.append(user)
+            if len(user.downloads) > self.MIN_DOWNLOADS:
+                user_list.append(user)
 
         return user_list

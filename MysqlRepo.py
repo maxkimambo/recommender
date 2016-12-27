@@ -10,7 +10,7 @@ class MysqlRepo:
 
     def connect(self):
         try:
-            self.conn = db.connect(user='root', password='alexandra', host='mysql', database='recommender')
+            self.conn = db.connect(user='root', password='cassandro', host='mysql', database='analytics')
             cursor = self.conn.cursor()
             return cursor
         except db.Error as err:
@@ -22,7 +22,7 @@ class MysqlRepo:
 
     def setup_db(self):
 
-        self.engine = create_engine("mysql+mysqldb://root:" + 'alexandra' + "@mysql/recommender")
+        self.engine = create_engine("mysql+mysqldb://root:" + 'cassandro' + "@mysql/analytics")
         meta = MetaData(bind=self.engine)
 
         ### Recommendations Table ###
@@ -53,6 +53,6 @@ class MysqlRepo:
 
     def populate_data(self, products):
         self.connect()
-        products.to_sql('product_recommendations', self.conn, flavor='mysql', if_exists='replace', index=True)
+        products.to_sql('product_recommendations', self.conn, flavor='mysql', if_exists='append', index=True)
         # related_products.to_sql('related_product_recommendations', self.conn, flavor='mysql', if_exists='replace',index=True)
         self.disconnect()

@@ -40,45 +40,6 @@ class Recommender:
 
         return document_similarity
 
-    # def prepare_item_item_data(self, product_matrix):
-    #     print("preparing unique items")
-    #     pdf = pd.DataFrame(product_matrix)
-    #     #check for duplicates
-    #     pdf["is_dup"] = pdf.duplicated(["id"])
-    #     dupes = pdf["is_dup"].sum()
-    #
-    #
-    #     print('removing {0} duplicates'.format(dupes))
-    #
-    #     unique_docs = pdf.loc[pdf['is_dup'] == False]
-    #
-    #     return unique_docs
-
-    # def prepare_document_data(self, doc_row):
-    #
-    #     print(doc_row)
-    #
-    # def prepare_data(self):
-    #
-    #     print("Started building document matrix")
-    #
-    #     self.worker.process_document_data()
-    #     doc_matrix = self.worker.build_document_matrix()
-    #     docs = pd.DataFrame(doc_matrix)
-    #
-    #     print("Finished building document matrix")
-    #
-    #     return docs
-
-
-
-    # def get_document_matrix(self, docs):
-    #     #dataframe docs
-    #     coded_docs = docs[["class_year", "school_code", "subject_code"]]
-    #     return coded_docs
-
-
-
     def calculate_recommendations(self):
         product_matrix = self.worker.build_product_matrix()
 
