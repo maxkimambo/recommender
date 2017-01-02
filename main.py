@@ -1,4 +1,4 @@
-from tfidfRecommender import TfidfRecommender
+from ContentBasedFilter import ContentBasedFilter
 from MysqlRepo import MysqlRepo
 import json
 from config_loader import ConfigLoader
@@ -18,7 +18,7 @@ def main():
 
     # start http server to serve incoming requests
 
-    # recommender = TfidfRecommender()
+    # recommender = ContentBasedFilter()
     # repo = MysqlRepo()
     #
     # product_recommendations = recommender.generate_recommendations()

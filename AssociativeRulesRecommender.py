@@ -8,7 +8,7 @@ from mongo_repo import mongoRepo
 
 # get a list of transactions
 
-class MarketBasket:
+class AssociativeRulesRecommender:
     def get_transactions(self):
         repo = mongoRepo()
         users_transactions = repo.get_user_downloads()
@@ -48,7 +48,7 @@ test_transaction.append(['sugar', 'milk', 'flour', 'yeast'])
 test_transaction.append(['sugar', 'milk', 'yeast'])
 test_transaction.append(['water', 'milk', 'coffee'])
 
-mb = MarketBasket()
+mb = AssociativeRulesRecommender()
 trx = mb.get_transactions()
 # freq = mb.get_frequent_items(test_transaction)
 # freq = mb.get_frequent_items(trx)
