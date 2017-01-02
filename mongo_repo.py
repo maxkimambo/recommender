@@ -2,11 +2,13 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from Model import User
 from Model import Document
+from datetime import datetime
+from time import strftime
 
 
 class mongoRepo:
     download_counter = 0
-    USER_LIMIT = 10000
+    USER_LIMIT = 52
     DOC_LIMIT = 100000
 
     # try different cutoff points
@@ -107,7 +109,6 @@ class mongoRepo:
         except (KeyError, TypeError, AttributeError) as err:
             pass
 
-
         return document
 
     def get_doc_by_id(self, id):
@@ -119,26 +120,27 @@ class mongoRepo:
 
         docs = self.db.mU_documents
         title_filter = ['Originaldokument',
-							'Titel',
-							'Titelseite',
-							'Inhaltsverzeichnis',
-							'Inhalt',
-							'Info',
-							'Einfuerhrung',
-							'EinfuFChung',
-							'EinfüFChung',
-							'Infoseite',
-							'Infoseiten',
-							'Quellenverzeichnis',
-							'Anhang',
-							'Glossar',
-							'Impressum',
-							'Verlaufsplanung',
-							'Verlausplanung',
-							'Literaturverzeichnis']
+                        'Titel',
+                        'Titelseite',
+                        'Inhaltsverzeichnis',
+                        'Inhalt',
+                        'Info',
+                        'Einfuerhrung',
+                        'EinfuFChung',
+                        'EinfüFChung',
+                        'Infoseite',
+                        'Infoseiten',
+                        'Quellenverzeichnis',
+                        'Anhang',
+                        'Glossar',
+                        'Impressum',
+                        'Verlaufsplanung',
+                        'Verlausplanung',
+                        'Literaturverzeichnis']
 
         result = docs.find(
-            {"type": "mindItem", "status.active": True, "status.exists": True, "status.hexxlerRelease": True , "title" : {"$nin": title_filter}}).limit(self.DOC_LIMIT)
+            {"type": "mindItem", "status.active": True, "status.exists": True, "status.hexxlerRelease": True,
+             "title": {"$nin": title_filter}}).limit(self.DOC_LIMIT)
         documentList = []
 
         for r in result:
@@ -151,7 +153,8 @@ class mongoRepo:
         """Fetches a list of users from mongodb """
 
         self.users = self.db.vws_Users
-        result = self.users.find({'active': True, 'marketing.mailings.customer.doubleOptIn': 'confirmed'}).limit(self.USER_LIMIT)
+        result = self.users.find({'active': True, 'marketing.mailings.customer.doubleOptIn': 'confirmed'}).limit(
+            self.USER_LIMIT)
         user_list = []
 
         for r in result:
@@ -160,3 +163,50 @@ class mongoRepo:
                 user_list.append(user)
 
         return user_list
+
+    def get_user_downloads(self):
+
+        self.users = self.db.vws_Users
+        result = self.users.find({'active': True, 'marketing.mailings.customer.doubleOptIn': 'confirmed'}).limit(
+            self.USER_LIMIT)
+        user_list = []
+
+        for r in result:
+            user_transactions = self.user_transaction_factory(r)
+            if user_transactions:
+                user_list.append(user_transactions)
+
+        return user_list
+
+    def user_transaction_factory(self, user_cursor):
+        """Creates transaction object from mongo cursor"""
+        u = User()
+        u.id = str(user_cursor.get("_id"))
+        u.download_list = user_cursor.get("downloadList")
+
+        try:
+            transaction = {}
+            #e.g {'503a0123b2d700ed1400007b-2013-08-18': ['50a2bca4d789a700ddc7fec1', '50a2bca4d789a700ddc7fec0']}
+            # create a list of downloaded ids
+            for doc in u.download_list:
+                doc_id = str(doc.get('doc_id'))
+
+                if doc_id:
+                    transaction_timestamp = datetime.utcfromtimestamp(int(doc['timestamp'] / 1000 / 86400) * 86400).strftime('%Y-%m-%d')
+                    transaction_id = "{0}-{1}".format(u.id, transaction_timestamp)
+
+                    doc_list = []
+
+                    if transaction_id in transaction:
+                        transaction[transaction_id].append(doc_id)
+                    else:
+
+                        doc_list.append(doc_id)
+                        transaction = {transaction_id: doc_list }
+
+            return transaction
+
+        except TypeError as err:
+            pass
+
+

@@ -43,7 +43,7 @@ class CassandraImporter:
             session_state = {'paging_stage': results.paging_state}
 
             for res in self.parse_results(results):
-                self.insert_to_sql(res)
+                #self.insert_to_sql(res)
                 self.progress_counter += 1
                 if (self.progress_counter % 100) == 0:
                     print("--------------------- ***--------------------------")
@@ -81,9 +81,11 @@ class CassandraImporter:
                 self.insert_to_sql(res)
                 self.progress_counter += 1
                 if (self.progress_counter % 100) == 0:
+                    print("--------------------- ***--------------------------")
                     print('processed {0} events '.format(self.progress_counter))
                     print('restart count {0}'.format(self.restart_count))
                     print('errors occured {0}'.format(self.errors))
+                    print('----------------------------------------------------')
         except Exception as err:
             # restart the process on failure
             print('Error occured {0} ... restarting ....'.format(err))
