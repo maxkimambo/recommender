@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, MetaData, TEXT, Integer, Table, Column, Fo
 import pandas as pd
 
 
-class MysqlRepo:
+class MysqlRepository:
     def __init__(self):
         self.conn = None
         self.engine = None

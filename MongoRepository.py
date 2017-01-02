@@ -6,7 +6,7 @@ from datetime import datetime
 from time import strftime
 
 
-class mongoRepo:
+class MongoRepository:
     download_counter = 0
     USER_LIMIT = 52
     DOC_LIMIT = 100000

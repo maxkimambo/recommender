@@ -1,10 +1,10 @@
-from mongo_repo import mongoRepo
+from MongoRepository import MongoRepository
 import traceback
 
 
 class Worker:
     def __init__(self):
-        self.repo = mongoRepo()
+        self.repo = MongoRepository()
         self.users = None
         self.documents = None
 

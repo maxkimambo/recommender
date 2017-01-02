@@ -1,8 +1,8 @@
-from mongo_repo import mongoRepo
+from MongoRepository import MongoRepository
 
 
 class DocumentInfo:
-    repo = mongoRepo()
+    repo = MongoRepository()
 
     def fetch_docs(self):
         document_list = self.repo.get_documents()

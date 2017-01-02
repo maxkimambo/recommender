@@ -1,5 +1,5 @@
 from ContentBasedFilter import ContentBasedFilter
-from MysqlRepo import MysqlRepo
+from MysqlRepository import MysqlRepository
 import json
 from config_loader import ConfigLoader
 
@@ -19,7 +19,7 @@ def main():
     # start http server to serve incoming requests
 
     # recommender = ContentBasedFilter()
-    # repo = MysqlRepo()
+    # repo = MysqlRepository()
     #
     # product_recommendations = recommender.generate_recommendations()
     #

@@ -5,21 +5,20 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from Recommender import Recommender
 
-class ContentBasedFilter:
 
+class ContentBasedFilter:
     # Constants
     SIMILARITY_CUTOFF = 0.90
     DOCS_TO_SHOW = 40
 
     SEPARATOR = '===================================================================================='
 
-    #pandas options
+    # pandas options
 
     pd.set_option('display.height', 1000)
     pd.set_option('display.max_rows', 500)
     pd.set_option('display.max_columns', 500)
     pd.set_option('display.width', 1000)
-
 
     def generate_recommendations(self):
         print('starting worker....')
@@ -38,7 +37,6 @@ class ContentBasedFilter:
 
         print("constructing product matrix")
         product_matrix = worker.build_product_matrix()
-
 
         documents_data = worker.get_product_matrix_data(product_matrix)
 
@@ -69,13 +67,13 @@ class ContentBasedFilter:
         # transppose the dataframe
         tag_df = tag_df.transpose()
 
-        #combine both dataframes
+        # combine both dataframes
         combined = pd.concat([doc_meta, tag_df], axis=1)
 
-        #rename columns
+        # rename columns
         combined.columns = ['school_code', 'subject_code', 'class_year', 'similarity']
 
-        #calculate document similarity
+        # calculate document similarity
         document_similarity = cosine_similarity(combined[0:1], combined)
 
         # convert into dataframe
@@ -107,24 +105,26 @@ class ContentBasedFilter:
 
         document_similarity_table = doc_similarity_matrix.sort_values(["similarity", "tag_similarity"], ascending=False)
 
-        document_similarity_table["similarity_score"] = (document_similarity_table["tag_similarity"] + document_similarity_table["similarity"] / 2) * 100
+        document_similarity_table["similarity_score"] = (document_similarity_table["tag_similarity"] +
+                                                         document_similarity_table["similarity"] / 2) * 100
 
         document_similarity_table = document_similarity_table.sort_values("similarity_score", ascending=False)
 
         if len(document_similarity_table.index):
             main_doc = document_similarity_table[0:1]
 
-            main_product_id = main_doc.get_value(0 ,"id")
+            main_product_id = main_doc.get_value(0, "id")
 
             print(self.SEPARATOR)
             print("processed product : {0} ".format(main_product_id))
 
             document_similarity_table["product_id"] = main_product_id
-        else :
+        else:
             document_similarity_table["product_id"] = "Dont know"
-        #relabel the columns
+        # relabel the columns
         document_similarity_table.columns = ["related_product_id", "school_code", "subject_code",
-                                             "class_year", "tag_similarity", "similarity", "similarity_score", "product_id"]
+                                             "class_year", "tag_similarity", "similarity", "similarity_score",
+                                             "product_id"]
 
         # print(self.SEPARATOR)
         # print(document_similarity_table.head(self.DOCS_TO_SHOW))

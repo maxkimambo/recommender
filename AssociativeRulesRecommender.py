@@ -1,7 +1,7 @@
 from Worker import Worker
 import fim
 
-from mongo_repo import mongoRepo
+from MongoRepository import MongoRepository
 
 
 # get all downloads for user
@@ -10,7 +10,7 @@ from mongo_repo import mongoRepo
 
 class AssociativeRulesRecommender:
     def get_transactions(self):
-        repo = mongoRepo()
+        repo = MongoRepository()
         users_transactions = repo.get_user_downloads()
         transactions = []
 
