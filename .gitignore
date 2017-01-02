@@ -5,3 +5,6 @@ __pycache__
 *.csv
 .ipynb_checkpoints/
 .vscode/
+config.json
+cheryl.cer
+klab_rsa
