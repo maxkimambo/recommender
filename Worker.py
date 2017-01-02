@@ -1,6 +1,5 @@
 from mongo_repo import mongoRepo
 import traceback
-from csv_exporter import CSVExporter
 
 
 class Worker:

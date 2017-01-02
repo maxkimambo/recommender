@@ -1,15 +1,30 @@
 from tfidfRecommender import TfidfRecommender
 from MysqlRepo import MysqlRepo
+import json
+from config_loader import ConfigLoader
 
 def main():
 
-    recommender = TfidfRecommender()
-    repo = MysqlRepo()
+    #load the app configuration
+    cfg = ConfigLoader()
+    config = cfg.get_config()
+    server = config.get('server').get('host')
+    port = config.get('server').get('port')
+    print(port)
 
-    product_recommendations = recommender.generate_recommendations()
+    # server = config.get('server')
 
-    for rec in product_recommendations:
-        repo.populate_data(rec)
+    # run worker processes if conditions are met
+
+    # start http server to serve incoming requests
+
+    # recommender = TfidfRecommender()
+    # repo = MysqlRepo()
+    #
+    # product_recommendations = recommender.generate_recommendations()
+    #
+    # for rec in product_recommendations:
+    #     repo.populate_data(rec)
 
 
 
