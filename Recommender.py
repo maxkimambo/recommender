@@ -10,8 +10,8 @@ import sklearn.datasets as datasets
 
 class Recommender:
 
-    __coded_docs = object
-    __docs = object
+    __coded_docs = None
+    __docs = None
     # prepare the datasets
     worker = Worker()
 
@@ -43,26 +43,3 @@ class Recommender:
     def calculate_recommendations(self):
         product_matrix = self.worker.build_product_matrix()
 
-
-
-    def get_recommendations(self, doc_id, count=5):
-        """ Fetches item / item recommendations  """
-
-        #calc tag similarity
-        #calc document similarity
-        #weighted average
-
-
-
-
-        pass
-
-    # # dataframe of coded documents
-    # self.__coded_docs =
-    #
-    # ten_doc = self.__coded_docs[:10]
-    #
-    # docs_no_tags_similarity = cosine_similarity(ten_doc[:3], ten_doc)
-    #
-    # tag_list = worker.get_all_tags()
-    # pass

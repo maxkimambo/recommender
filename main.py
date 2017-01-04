@@ -8,9 +8,8 @@ def main():
     #load the app configuration
     cfg = ConfigLoader()
     config = cfg.get_config()
-    server = config.get('server').get('host')
-    port = config.get('server').get('port')
-    print(port)
+
+    print(config)
 
     # server = config.get('server')
 

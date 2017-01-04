@@ -113,7 +113,6 @@ class Worker:
     def get_product_matrix_data(self, documents):
         """Fetches data from mongo and creates a format from which we can build a matrix"""
         #TODO: optimise this step we already have docs in memory
-        product_matrix = []
         document_list = []
         # counter = 0
         for doc in documents:

@@ -4,18 +4,22 @@ from Model import User
 from Model import Document
 from datetime import datetime
 from time import strftime
-
+from config_loader import ConfigLoader
 
 class MongoRepository:
     download_counter = 0
-    USER_LIMIT = 52
-    DOC_LIMIT = 100000
-
-    # try different cutoff points
-    MIN_DOWNLOADS = 50
 
     def __init__(self):
-        client = MongoClient('mongo', 27017)
+
+        cfg = ConfigLoader()
+        self.config = cfg.get_config()
+        self.MONGO_HOST = self.config.mongo_host
+        self.MONGO_PORT = self.config.mongo_port
+        self.USER_LIMIT = self.config.user_limit
+        self.DOC_LIMIT = self.config.data_doc_limit
+        self.MIN_DOWNLOADS = self.config.data_min_downloads
+
+        client = MongoClient(self.MONGO_HOST, self.MONGO_PORT)
         self.db = client.mU
         self.users = None
 
@@ -95,8 +99,7 @@ class MongoRepository:
             document.subject = record.get("qualifications")["subject"]
             document.tags = []
             tags = record.get("qualifications")["tags"]
-            # myList = ','.join(map(str, myList))
-            # document.tag_collection = " ".join(map(str, tags))
+
             for t in tags:
                 document.tags.append(t.get("tag").lower())
 

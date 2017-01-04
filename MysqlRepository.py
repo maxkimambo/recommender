@@ -1,16 +1,23 @@
 import mysql.connector as db
 from sqlalchemy import create_engine, MetaData, TEXT, Integer, Table, Column, ForeignKey
 import pandas as pd
-
+from config_loader import ConfigLoader
 
 class MysqlRepository:
     def __init__(self):
         self.conn = None
         self.engine = None
+        cfg = ConfigLoader()
+        self.config = cfg.get_config()
+        self.mysql_host = self.config.mysql_host
+        self.mysql_user = self.config.mysql_user
+        self.mysql_pass = self.config.mysql_pass
+        self.mysql_database = self.config.mysql_database
 
     def connect(self):
         try:
-            self.conn = db.connect(user='root', password='cassandro', host='mysql', database='analytics')
+            self.conn = db.connect(user=self.mysql_user, password=self.mysql_pass,
+                                   host=self.mysql_host, database=self.mysql_database)
             cursor = self.conn.cursor()
             return cursor
         except db.Error as err:
@@ -22,7 +29,9 @@ class MysqlRepository:
 
     def setup_db(self):
 
-        self.engine = create_engine("mysql+mysqldb://root:" + 'cassandro' + "@mysql/analytics")
+        conn_string = "mysql+mysqldb://{0}:{1} @{2}/{3}".format(self.mysql_user, self.mysql_pass,
+                                                                self.mysql_host, self.mysql_database)
+        self.engine = create_engine(conn_string)
         meta = MetaData(bind=self.engine)
 
         ### Recommendations Table ###
