@@ -9,10 +9,10 @@ class MysqlRepository:
         self.engine = None
         cfg = ConfigLoader()
         self.config = cfg.get_config()
-        self.mysql_host = self.config.mysql_host
-        self.mysql_user = self.config.mysql_user
-        self.mysql_pass = self.config.mysql_pass
-        self.mysql_database = self.config.mysql_database
+        self.mysql_host = self.config.get('mysql_host')
+        self.mysql_user = self.config.get('mysql_user')
+        self.mysql_pass = self.config.get('mysql_pass')
+        self.mysql_database = self.config.get('mysql_database')
 
     def connect(self):
         try:
@@ -29,7 +29,7 @@ class MysqlRepository:
 
     def setup_db(self):
 
-        conn_string = "mysql+mysqldb://{0}:{1} @{2}/{3}".format(self.mysql_user, self.mysql_pass,
+        conn_string = "mysql+mysqldb://{0}:{1}@{2}/{3}".format(self.mysql_user, self.mysql_pass,
                                                                 self.mysql_host, self.mysql_database)
         self.engine = create_engine(conn_string)
         meta = MetaData(bind=self.engine)

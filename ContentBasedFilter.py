@@ -4,17 +4,21 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from Recommender import Recommender
-
+from config_loader import ConfigLoader
 
 class ContentBasedFilter:
     # Constants
-    SIMILARITY_CUTOFF = 0.90
     DOCS_TO_SHOW = 40
-
     SEPARATOR = '===================================================================================='
 
-    # pandas options
+    def __init__(self):
+        cfg = ConfigLoader()
+        self.config = cfg.get_config()
 
+        self.SIMILARITY_CUTOFF = self.config.get('similarity_cuttoff')
+
+
+    # pandas options
     pd.set_option('display.height', 1000)
     pd.set_option('display.max_rows', 500)
     pd.set_option('display.max_columns', 500)

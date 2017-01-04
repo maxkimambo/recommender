@@ -23,7 +23,7 @@ class ConfigLoader:
             self.config['data_download_history'] = config_raw.get('data').get('download_history_days')
             self.config['data_min_downloads'] = config_raw.get('data').get('min_downloads')
 
-            return self.config
+        return self.config
 
     def get_config(self):
         if self.config:

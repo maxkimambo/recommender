@@ -172,7 +172,7 @@ class Worker:
         return doc_matrix
 
     def __build_product_matrix(self, users, documents):
-
+        """Amazon V1 algorithm implementation"""
         doc_set = tuple(documents)
 
         if not self.users:
@@ -181,7 +181,7 @@ class Worker:
         if not self.documents:
             self.process_document_data()
 
-        # amazon v1 algo
+        # amazon v1 algorithm
         # http://www.cs.umd.edu/~samir/498/Amazon-Recommendations.pdf
         product_product_matrix = []
         print("Constructing product matrix of {0} documents vs {1} users".format(len(doc_set), len(users)))

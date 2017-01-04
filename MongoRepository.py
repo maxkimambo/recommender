@@ -12,12 +12,13 @@ class MongoRepository:
     def __init__(self):
 
         cfg = ConfigLoader()
-        self.config = cfg.get_config()
-        self.MONGO_HOST = self.config.mongo_host
-        self.MONGO_PORT = self.config.mongo_port
-        self.USER_LIMIT = self.config.user_limit
-        self.DOC_LIMIT = self.config.data_doc_limit
-        self.MIN_DOWNLOADS = self.config.data_min_downloads
+        self.config = cfg.load()
+        print(self.config)
+        self.MONGO_HOST = self.config.get('mongo_host')
+        self.MONGO_PORT = self.config.get('mongo_port')
+        self.USER_LIMIT = self.config.get('data_user_limit')
+        self.DOC_LIMIT = self.config.get('data_doc_limit')
+        self.MIN_DOWNLOADS = self.config.get('data_min_downloads')
 
         client = MongoClient(self.MONGO_HOST, self.MONGO_PORT)
         self.db = client.mU
