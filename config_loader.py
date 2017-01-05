@@ -22,7 +22,10 @@ class ConfigLoader:
             self.config['data_doc_limit'] = config_raw.get('data').get('doc_limit')
             self.config['data_download_history'] = config_raw.get('data').get('download_history_days')
             self.config['data_min_downloads'] = config_raw.get('data').get('min_downloads')
-
+            self.config['redis_host'] = config_raw.get('redis').get('host')
+            self.config['redis_port'] = config_raw.get('redis').get('port')
+            self.config['redis_db'] = config_raw.get('redis').get('db')
+            self.config['redis_ttl'] = config_raw.get('redis').get('ttl')
         return self.config
 
     def get_config(self):

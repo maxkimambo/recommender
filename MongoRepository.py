@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from Model import User
 from Model import Document
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import strftime
 from config_loader import ConfigLoader
 
@@ -164,6 +164,7 @@ class MongoRepository:
         for r in result:
             user = self.user_factory(r)
             if len(user.downloads) > self.MIN_DOWNLOADS:
+
                 user_list.append(user)
 
         return user_list
@@ -187,7 +188,11 @@ class MongoRepository:
         u = User()
         u.id = str(user_cursor.get("_id"))
         u.download_list = user_cursor.get("downloadList")
+        cuttoff_value = timedelta(days=self.config.get('data_download_history'))
 
+        cuttoff_date = datetime.now() - cuttoff_value
+
+        print(cuttoff_date)
         try:
             transaction = {}
             #e.g {'503a0123b2d700ed1400007b-2013-08-18': ['50a2bca4d789a700ddc7fec1', '50a2bca4d789a700ddc7fec0']}
@@ -196,17 +201,18 @@ class MongoRepository:
                 doc_id = str(doc.get('doc_id'))
 
                 if doc_id:
-                    transaction_timestamp = datetime.utcfromtimestamp(int(doc['timestamp'] / 1000 / 86400) * 86400).strftime('%Y-%m-%d')
-                    transaction_id = "{0}-{1}".format(u.id, transaction_timestamp)
+                    transaction_timestamp = datetime.utcfromtimestamp(int(doc['timestamp'] / 1000 / 86400) * 86400)
 
-                    doc_list = []
+                    # check if data is after cutoff date
+                    if cuttoff_date > transaction_timestamp:
+                        transaction_id = "{0}-{1}".format(u.id, transaction_timestamp.strftime('%Y-%m-%d'))
+                        print('Ignoring ..{0}'.format(transaction_timestamp))
 
-                    if transaction_id in transaction:
-                        transaction[transaction_id].append(doc_id)
-                    else:
-
-                        doc_list.append(doc_id)
-                        transaction = {transaction_id: doc_list }
+                        if transaction_id in transaction:
+                            transaction[transaction_id].append(doc_id)
+                        else:
+                            doc_list = [doc_id]
+                            transaction = {transaction_id: doc_list}
 
             return transaction
 
