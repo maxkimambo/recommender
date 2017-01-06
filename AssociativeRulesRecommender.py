@@ -2,21 +2,16 @@ import fim
 from RedisRepository import RedisRepository
 from MongoRepository import MongoRepository
 
-
-# get all downloads for user
-
-# get a list of transactions
-
 class AssociativeRulesRecommender:
     def __init__(self):
         self.redis = RedisRepository()
 
     def get_transactions(self):
+
         repo = MongoRepository()
-        users_transactions = repo.get_user_downloads()
+        users_transactions = repo.get_all_user_downloads()
         transactions = []
         for t in users_transactions:
-
             # go over the keys and join the list of transactions
             for _, v in t.items():
 
@@ -24,14 +19,9 @@ class AssociativeRulesRecommender:
                     transactions.append(v)
         return transactions
 
-    def get_frequent_items(self, transactions):
-        # report='c',
-        frequent_items = fim.apriori(transactions, target='r', prune=2, mode='y')
-        return frequent_items
-
     def find_association_rules(self, transactions):
 
-        rules = fim.arules(transactions, supp=-5,  zmin=3, zmax=5, report="SC")
+        rules = fim.arules(transactions, supp=-3,  zmin=1, zmax=5, report="SC")
 
         return rules
 

@@ -8,3 +8,5 @@ __pycache__
 config.json
 cheryl.cer
 klab_rsa
+driver.py
+fim.so

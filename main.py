@@ -13,13 +13,13 @@ def main():
     bgw = BackgroundWorker()
     # generate CB-recommendations
     # implement age check
-    cb_thread = threading.Thread(name="CB filter thread", target=bgw.calculate_content_based_similarity)
+    #cb_thread = threading.Thread(name="CB filter thread", target=bgw.calculate_content_based_similarity)
 
     # generate Association Rules
     # implement age check
     ar_thread = threading.Thread(name="AR thread", target=bgw.generate_associative_rules)
 
-    cb_thread.start()
+    #cb_thread.start()
     ar_thread.start()
     # start http server to serve incoming requests
 

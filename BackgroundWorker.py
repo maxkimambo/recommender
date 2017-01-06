@@ -33,7 +33,6 @@ class BackgroundWorker:
         # compare against the rules
         # write out recommendations
 
-
     def calculate_content_based_similarity(self):
 
         cf_start = time.time()

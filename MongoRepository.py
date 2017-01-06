@@ -13,7 +13,6 @@ class MongoRepository:
 
         cfg = ConfigLoader()
         self.config = cfg.load()
-        print(self.config)
         self.MONGO_HOST = self.config.get('mongo_host')
         self.MONGO_PORT = self.config.get('mongo_port')
         self.USER_LIMIT = self.config.get('data_user_limit')
@@ -39,6 +38,7 @@ class MongoRepository:
         u.schools = user_cursor.get("schools")
         u.school_type_list = []
         u.downloads = []
+        u.download_history = []
 
         # create a clean list of school types
         for school in u.schools:
@@ -56,6 +56,10 @@ class MongoRepository:
             # create a list of downloaded ids
             for doc in u.download_list:
                 u.downloads.append(str(doc["doc_id"]))
+                history = {"doc_id": str(doc["doc_id"]),
+                           "download_time": datetime.utcfromtimestamp(int(doc['timestamp'] / 1000 / 86400) * 86400)}
+                u.download_history.append(history)
+
         except TypeError as err:
             pass
 
@@ -169,7 +173,7 @@ class MongoRepository:
 
         return user_list
 
-    def get_user_downloads(self):
+    def get_all_user_downloads(self):
 
         self.users = self.db.vws_Users
         result = self.users.find({'active': True, 'marketing.mailings.customer.doubleOptIn': 'confirmed'}).limit(
@@ -210,7 +214,7 @@ class MongoRepository:
                         else:
                             doc_list = [doc_id]
                             transaction = {transaction_id: doc_list}
-            print("Got {0} transactions to process for user {1}".format(counter, u.id))
+            # print("Got {0} transactions to process for user {1}".format(counter, u.id))
             return transaction
 
         except TypeError as err:

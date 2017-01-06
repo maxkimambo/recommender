@@ -19,6 +19,10 @@ class RedisRepository:
         else:
             self.db.set(key, data)
 
+    def store_list(self, key, list_data):
+
+        self.db.rpush(key, *list_data)
+
     def store_binary(self, key, data):
         """Saves data in binary to db"""
 
@@ -26,15 +30,17 @@ class RedisRepository:
             self.db.setex(key,  self.ttl, pickle.dumps(data))
         else:
             self.db.set(key, pickle.dumps(data))
-        print('processed key {0}'.format(key))
+        # print('processed key {0}'.format(key))
 
     def read(self, key):
         data = self.db.get(key)
         return data
 
     def read_binary(self, key):
-        data = pickle.loads(self.db.get(key))
-        return data
+        data = self.db.get(key)
+        if data:
+            binary_data = pickle.loads(data)
+            return binary_data
 
     def remove(self, key):
 

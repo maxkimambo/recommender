@@ -21,6 +21,7 @@ class ConfigLoader:
             self.config['data_user_limit'] = config_raw.get('data').get('user_limit')
             self.config['data_doc_limit'] = config_raw.get('data').get('doc_limit')
             self.config['data_download_history'] = config_raw.get('data').get('download_history_days')
+            self.config['data_days_to_analyze'] = config_raw.get('data').get('days_to_analyse')
             self.config['data_min_downloads'] = config_raw.get('data').get('min_downloads')
             self.config['redis_host'] = config_raw.get('redis').get('host')
             self.config['redis_port'] = config_raw.get('redis').get('port')
