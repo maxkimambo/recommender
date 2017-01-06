@@ -1,6 +1,5 @@
-from ContentBasedFilter import ContentBasedFilter
-from MysqlRepository import MysqlRepository
-from config_loader import ConfigLoader
+from BackgroundWorker import BackgroundWorker
+
 
 def main():
 
@@ -13,25 +12,16 @@ def main():
     # server = config.get('server')
 
     # run worker processes if conditions are met
-
-    # start http server to serve incoming requests
-
+    bgw = BackgroundWorker()
     # generate CB-recommendations
     # implement age check
-    recommender = ContentBasedFilter()
-    repo = MysqlRepository()
-
-    product_recommendations = recommender.generate_recommendations()
-
-    for rec in product_recommendations:
-        repo.populate_data(rec)
+    bgw.calculate_content_based_similarity()
 
     # generate Association Rules
     # implement age check
+    bgw.generate_associative_rules()
 
-
-
-
+    # start http server to serve incoming requests
 
 
 if __name__ == "__main__":

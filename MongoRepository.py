@@ -189,10 +189,8 @@ class MongoRepository:
         u.id = str(user_cursor.get("_id"))
         u.download_list = user_cursor.get("downloadList")
         cuttoff_value = timedelta(days=self.config.get('data_download_history'))
-
         cuttoff_date = datetime.now() - cuttoff_value
-
-        print(cuttoff_date)
+        counter = 0
         try:
             transaction = {}
             #e.g {'503a0123b2d700ed1400007b-2013-08-18': ['50a2bca4d789a700ddc7fec1', '50a2bca4d789a700ddc7fec0']}
@@ -202,18 +200,17 @@ class MongoRepository:
 
                 if doc_id:
                     transaction_timestamp = datetime.utcfromtimestamp(int(doc['timestamp'] / 1000 / 86400) * 86400)
-
                     # check if data is after cutoff date
                     if cuttoff_date > transaction_timestamp:
+                        counter += 1
                         transaction_id = "{0}-{1}".format(u.id, transaction_timestamp.strftime('%Y-%m-%d'))
-                        print('Ignoring ..{0}'.format(transaction_timestamp))
-
+                        # print('Ignoring ..{0}'.format(transaction_timestamp))
                         if transaction_id in transaction:
                             transaction[transaction_id].append(doc_id)
                         else:
                             doc_list = [doc_id]
                             transaction = {transaction_id: doc_list}
-
+            print("Got {0} transactions to process for user {1}".format(counter, u.id))
             return transaction
 
         except TypeError as err:
