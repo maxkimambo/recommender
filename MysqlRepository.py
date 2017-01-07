@@ -1,6 +1,7 @@
 import mysql.connector as db
-from sqlalchemy import create_engine, MetaData, TEXT, Integer, Table, Column, ForeignKey
-import pandas as pd
+from sqlalchemy import create_engine, MetaData, TEXT, Integer, Table, Column, ForeignKey, Sequence
+from sqlalchemy.sql import select, text
+
 from config_loader import ConfigLoader
 
 class MysqlRepository:
@@ -13,6 +14,24 @@ class MysqlRepository:
         self.mysql_user = self.config.get('mysql_user')
         self.mysql_pass = self.config.get('mysql_pass')
         self.mysql_database = self.config.get('mysql_database')
+
+        conn_string = "mysql+mysqldb://{0}:{1}@{2}/{3}".format(self.mysql_user, self.mysql_pass,
+                                                               self.mysql_host, self.mysql_database)
+        self.engine = create_engine(conn_string)
+        meta = MetaData(bind=self.engine)
+
+        ### Recommendations Table ###
+        self.recommendations = Table('product_recommendations', meta,
+                                     Column('product_id', TEXT, nullable=False),
+                                     Column('related_product_id', TEXT, nullable=False),
+                                     Column('school_code', Integer, nullable=True),
+                                     Column('subject_code', Integer, nullable=True),
+                                     Column('class_year', Integer, nullable=True),
+                                     Column('tag_similarity', Integer, nullable=True),
+                                     Column('similarity', Integer, nullable=True),
+                                     Column('similarity_score', Integer, nullable=True)
+                                     )
+
 
     def connect(self):
         try:
@@ -35,33 +54,40 @@ class MysqlRepository:
         meta = MetaData(bind=self.engine)
 
         ### Recommendations Table ###
-        table_recommendations = Table('product_recommendations', meta,
-                                      Column('product_id', TEXT, nullable=False),
-                                      Column('related_product_id', TEXT, nullable=False),
-                                      Column('school_code', Integer, nullable=True),
-                                      Column('subject_code', Integer, nullable=True),
-                                      Column('class_year', Integer, nullable=True),
-                                      Column('tag_similarity', Integer, nullable=True),
-                                      Column('similarity', Integer, nullable=True),
-                                      Column('similarity_score', Integer, nullable=True)
-                                      )
+        self.recommendations = Table('product_recommendations', meta,
+                                     Column('product_id', TEXT, nullable=False),
+                                     Column('related_product_id', TEXT, nullable=False),
+                                     Column('school_code', Integer, nullable=True),
+                                     Column('subject_code', Integer, nullable=True),
+                                     Column('class_year', Integer, nullable=True),
+                                     Column('tag_similarity', Integer, nullable=True),
+                                     Column('similarity', Integer, nullable=True),
+                                     Column('similarity_score', Integer, nullable=True)
+                                     )
 
-        ### Recommendations Table ###
-        related_products = Table('related_product_recommendations', meta,
-                                 Column('id', Integer, primary_key=True, autoincrement=False),
-                                 Column('product_id', TEXT, nullable=False),
-                                 Column('related_product_id', TEXT, nullable=False),
-                                 Column('school_code', Integer, nullable=True),
-                                 Column('subject_code', Integer, nullable=True),
-                                 Column('similarity', Integer, nullable=True),
-                                 Column('tag_similarity', Integer, nullable=True),
-                                 Column('similarity_score', Integer, nullable=True)
-                                 )
+
         # create tables in db
         meta.create_all(self.engine)
 
     def populate_data(self, products):
         self.connect()
         products.to_sql('product_recommendations', self.conn, flavor='mysql', if_exists='append', index=True)
-        # related_products.to_sql('related_product_recommendations', self.conn, flavor='mysql', if_exists='replace',index=True)
         self.disconnect()
+
+    def get_document_by_id(self, doc_id):
+
+        conn = self.engine.connect()
+        sel = select([self.recommendations]).where(self.recommendations.c.product_id == doc_id)
+
+        # query excludes other school types from the recommendations
+        # in theory a user will only be teaching at one school
+        query = text(
+            "Select * from product_recommendations where school_code = "
+            "(select school_code from product_recommendations where product_id =:product_id and `index`=0)"
+            "and product_id = :product_id order by similarity_score DESC;")
+        result = conn.execute(query, product_id=doc_id)
+
+        for r in result:
+            print(r)
+
+        result.close()
