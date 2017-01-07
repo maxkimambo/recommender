@@ -38,13 +38,40 @@ class UserRecommender:
             logging.debug("Recent downloads identified : {0}".format(len(recent_downloads)))
         return recent_downloads
 
-    def __get_topN_ar_recommendations(self, limit):
+    def get_topN_ar_recommendations(self, user_id, limit=10):
         """Fetches N top recommendations for a user from Association Rules store"""
-        pass
+        key = "recommendation:ar:{0}".format(user_id)
+        result = self.redis.read_binary(key)
+        top_n = []
+        rec_list = result[0:limit]
 
-    def __get_topN_cb_recommendations(self, limit):
+        for rec in rec_list:
+            # first item is the recommendation
+            top_n.append(rec[0])
+
+        logging.debug("recs for user {0} : {1}".format(user_id, top_n))
+
+        return top_n
+
+    def get_topN_cb_recommendations(self, user_id, limit=10):
         """Fetches N top recommendations for a user from CB filter store"""
-        pass
+        key = "recommendation:cb:{0}".format(user_id)
+        result = self.redis.read_binary(key)
+        top_n = []
+        rec_list = result[0:limit]
+
+        for rec in rec_list:
+            top_n.append(rec.get('doc_id'))
+
+        logging.debug("recs for user {0} : {1}".format(user_id, top_n))
+        return top_n
+
+    def get_top_n_combined_recommendations(self, user_id, limit=10):
+        """Convenience method to combine both recommenders in one call"""
+        ar = self.get_topN_ar_recommendations(user_id, limit)
+        cb = self.get_topN_cb_recommendations(user_id, limit)
+
+        return ar + cb
 
     def generate_ar_recommendations_for_user(self, user_id, downloads):
         """Generates recommendatios for user by Associative rule mining"""
