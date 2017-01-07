@@ -1,22 +1,23 @@
 from MongoRepository import MongoRepository
 import traceback
-
+from log import Logger
 
 class Worker:
     def __init__(self):
         self.repo = MongoRepository()
         self.users = None
         self.documents = None
+        self.logging = Logger()
 
     def process_user_data(self):
-        print('Retrieving user data ... ')
+        self.logging.debug('Retrieving user data ... ')
         self.users = self.repo.get_users()
-        print('Got info on {0} users '.format(len(self.users)))
+        self.logging.debug('Got info on {0} users '.format(len(self.users)))
 
     def process_document_data(self):
-        print("processing document data .... ")
+        self.logging.debug("processing document data .... ")
         self.documents = self.repo.get_documents()
-        print("Got {0} documents".format(len(self.documents)))
+        self.logging.debug("Got {0} documents".format(len(self.documents)))
 
     def build_product_matrix(self):
         return self.__build_product_matrix(self.users, self.documents)
@@ -121,10 +122,10 @@ class Worker:
             #     break
 
             doc_id = doc.get("id")
-            # print(doc_id)
+            # self.logging.debug(doc_id)
 
             downloads = doc.get("downloads")
-            # print("downloads {0}".format(len(downloads)))
+            # self.logging.debug("downloads {0}".format(len(downloads)))
 
             result = self.repo.get_doc_by_id(doc_id)
             document_list.append(result)  # main document
@@ -167,7 +168,7 @@ class Worker:
             except (AttributeError, ValueError, KeyError):
                 pass
 
-        print("document matrix has {0} docs".format(len(doc_matrix)))
+        self.logging.debug("document matrix has {0} docs".format(len(doc_matrix)))
 
         return doc_matrix
 
@@ -184,7 +185,7 @@ class Worker:
         # amazon v1 algorithm
         # http://www.cs.umd.edu/~samir/498/Amazon-Recommendations.pdf
         product_product_matrix = []
-        print("Constructing product matrix of {0} documents vs {1} users".format(len(doc_set), len(users)))
+        self.logging.debug("Constructing product matrix of {0} documents vs {1} users".format(len(doc_set), len(users)))
 
         # Go through all products
         for doc in doc_set:
@@ -202,12 +203,12 @@ class Worker:
                         doc_row["downloads"] += user.downloads
 
                 except TypeError as err:
-                    traceback.print_tb(err)
+                    traceback.self.logging.debug_tb(err)
                     pass
 
-            # print("processed doc id : {0}".format(doc_row.get("id")))
+            # self.logging.debug("processed doc id : {0}".format(doc_row.get("id")))
             product_product_matrix.append(doc_row)
 
-        print("constructed product matrix of {0} documents".format(len(product_product_matrix)))
+        self.logging.debug("constructed product matrix of {0} documents".format(len(product_product_matrix)))
 
         return product_product_matrix

@@ -5,6 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from Recommender import Recommender
 from config_loader import ConfigLoader
+from log import Logger
 
 class ContentBasedFilter:
     # Constants
@@ -16,7 +17,7 @@ class ContentBasedFilter:
         self.config = cfg.get_config()
 
         self.SIMILARITY_CUTOFF = self.config.get('similarity_cuttoff')
-
+        self.logging = Logger()
 
     # pandas options
     pd.set_option('display.height', 1000)
@@ -25,21 +26,21 @@ class ContentBasedFilter:
     pd.set_option('display.width', 1000)
 
     def generate_recommendations(self):
-        print('starting worker....')
+        self.logging.debug('starting worker....')
         worker = Worker()
         rec = Recommender()
 
-        print("starting to process user data")
+        self.logging.debug("starting to process user data")
         worker.process_user_data()
 
-        print("starting to process document data")
+        self.logging.debug("starting to process document data")
         worker.process_document_data()
 
         worker.get_all_tags()
 
         worker.get_school_types()
 
-        print("constructing product matrix")
+        self.logging.debug("constructing product matrix")
         product_matrix = worker.build_product_matrix()
 
         documents_data = worker.get_product_matrix_data(product_matrix)
@@ -47,7 +48,7 @@ class ContentBasedFilter:
         for doc_col in documents_data:
             # we dont want to process single item lists
             if len(doc_col) > 2:
-                print("generating recommendations....")
+                self.logging.debug("generating recommendations....")
                 downloaded_documents_matrix = worker.build_downloaded_document_matrix(doc_col)
                 df = rec.get_data_frame(downloaded_documents_matrix)
                 yield self.process_document_collection(df)
@@ -119,8 +120,8 @@ class ContentBasedFilter:
 
             main_product_id = main_doc.get_value(0, "id")
 
-            print(self.SEPARATOR)
-            print("processed product : {0} ".format(main_product_id))
+            self.logging.debug(self.SEPARATOR)
+            self.logging.debug("processed product : {0} ".format(main_product_id))
 
             document_similarity_table["product_id"] = main_product_id
         else:
@@ -130,7 +131,7 @@ class ContentBasedFilter:
                                              "class_year", "tag_similarity", "similarity", "similarity_score",
                                              "product_id"]
 
-        # print(self.SEPARATOR)
-        # print(document_similarity_table.head(self.DOCS_TO_SHOW))
+        # self.logging.debug(self.SEPARATOR)
+        # self.logging.debug(document_similarity_table.head(self.DOCS_TO_SHOW))
 
         return document_similarity_table

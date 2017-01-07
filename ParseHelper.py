@@ -37,13 +37,13 @@ class ParseHelper:
                 if type(class_years) is list:
                     class_years = ":".join(class_years)
                     class_years = class_years.replace("/", ":")
-            return class_years
+                return class_years
 
             if type(raw_years) is list:
                 class_years = ":".join(raw_years)
                 class_years = class_years.replace("/", ":")
 
-            return class_years
+                return class_years
 
     def get_subject(self, constraints):
 

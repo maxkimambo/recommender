@@ -2,6 +2,7 @@ import redis
 from config_loader import ConfigLoader
 import pickle
 
+
 class RedisRepository:
     def __init__(self):
         cfg = ConfigLoader()
@@ -27,10 +28,10 @@ class RedisRepository:
         """Saves data in binary to db"""
 
         if self.ttl:
-            self.db.setex(key,  self.ttl, pickle.dumps(data))
+            self.db.setex(key, self.ttl, pickle.dumps(data))
         else:
             self.db.set(key, pickle.dumps(data))
-        # print('processed key {0}'.format(key))
+            # print('processed key {0}'.format(key))
 
     def read(self, key):
         data = self.db.get(key)
@@ -48,4 +49,3 @@ class RedisRepository:
 
     def exits(self, key):
         return self.db.exists(key)
-

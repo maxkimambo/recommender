@@ -1,4 +1,5 @@
-import logging
+# import logging
+from log import Logger
 import threading
 from MongoRepository import MongoRepository
 from MysqlRepository import MysqlRepository
@@ -9,9 +10,10 @@ from RedisRepository import RedisRepository
 
 class UserRecommender:
     def __init__(self):
-        logging.basicConfig(level=logging.DEBUG,
-                            format='[%(levelname)s] (%(threadName)-10s) %(message)s',
-                            )
+        # logging.basicConfig(level=logging.DEBUG,
+        #                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
+        #                     )
+        self.logging = Logger()
         self.repo = MongoRepository()
         self.mysql = MysqlRepository()
         cfg = ConfigLoader()
@@ -35,7 +37,7 @@ class UserRecommender:
             if d["download_time"] > self.cuttoff_date:
                 recent_downloads.append(d["doc_id"])
         if len(recent_downloads):
-            logging.debug("Recent downloads identified : {0}".format(len(recent_downloads)))
+            self.logging.debug("Recent downloads identified : {0}".format(len(recent_downloads)))
         return recent_downloads
 
     def get_topN_ar_recommendations(self, user_id, limit=10):
@@ -43,13 +45,14 @@ class UserRecommender:
         key = "recommendation:ar:{0}".format(user_id)
         result = self.redis.read_binary(key)
         top_n = []
-        rec_list = result[0:limit]
+        if result:
+            rec_list = result[0:limit]
 
-        for rec in rec_list:
-            # first item is the recommendation
-            top_n.append(rec[0])
+            for rec in rec_list:
+                # first item is the recommendation
+                top_n.append(rec[0])
 
-        logging.debug("recs for user {0} : {1}".format(user_id, top_n))
+            self.logging.debug("recs for user {0} : {1}".format(user_id, top_n))
 
         return top_n
 
@@ -58,12 +61,14 @@ class UserRecommender:
         key = "recommendation:cb:{0}".format(user_id)
         result = self.redis.read_binary(key)
         top_n = []
-        rec_list = result[0:limit]
 
-        for rec in rec_list:
-            top_n.append(rec.get('doc_id'))
+        if result:
+            rec_list = result[0:limit]
 
-        logging.debug("recs for user {0} : {1}".format(user_id, top_n))
+            for rec in rec_list:
+                top_n.append(rec.get('doc_id'))
+
+        self.logging.debug("recs for user {0} : {1}".format(user_id, top_n))
         return top_n
 
     def get_top_n_combined_recommendations(self, user_id, limit=10):
@@ -87,18 +92,18 @@ class UserRecommender:
         recommendation_type = "cb"
         recommendations = self.__find_related_items_cb(downloads)
 
-        #recs are a list of dictionaries
+        # recs are a list of dictionaries
         # [{'product_id': '50464e9ab92d2a47a4c94595', 'related_product_id': '50464e87b92d2a47a4c938b2',
         # 'similarity_score': 54.197352130201196, 'tag_similarity': 0.04769175627333097}]
 
         # trying this format for now ignore above
-        #[{'doc_id': '51260e38d8d2ce66c47fdd04'}]
+        # [{'doc_id': '51260e38d8d2ce66c47fdd04'}]
 
         if recommendations:
             self.record_user_recommendations(user_id, recommendation_type, recommendations)
 
         self.cb_counter += len(recommendations)
-        logging.debug("Generated {0} recommendations for user {1}".format(len(recommendations), user_id))
+        self.logging.debug("Generated {0} recommendations for user {1}".format(len(recommendations), user_id))
 
     def record_user_recommendations(self, user_id, rec_type, recommendations):
         """Stores generated recommendations in Redis"""
@@ -107,10 +112,10 @@ class UserRecommender:
 
     def process_ar_recommendations(self):
         """Drives the recommendation generation algorithm"""
-        logging.debug("starting at {0}".format(datetime.now()))
+        self.logging.debug("starting at {0}".format(datetime.now()))
         users = self.__get_all_users()
 
-        logging.debug("Got {0} users to process ".format(len(users)))
+        self.logging.debug("Got {0} users to process ".format(len(users)))
 
         counter = 0
         for user in users:
@@ -118,7 +123,7 @@ class UserRecommender:
             self.generate_ar_recommendations_for_user(user.id, downloads)
             counter += 1
 
-        logging.debug("Generated {1} AR recommendations for {0} users".format(counter, self.ar_counter))
+        self.logging.debug("Generated {1} AR recommendations for {0} users".format(counter, self.ar_counter))
 
     def process_cb_recommendations(self):
         """Drives the content based recommendation generation algorithm"""
@@ -130,7 +135,7 @@ class UserRecommender:
             self.generate_cb_recommendations_for_user(user.id, downloads)
             counter += 1
 
-        logging.debug("Generated {1} CB recommendations for {0} users".format(counter, self.cb_counter))
+        self.logging.debug("Generated {1} CB recommendations for {0} users".format(counter, self.cb_counter))
 
     def __find_related_items_ar(self, downloads):
         """Finds related items and holds filtering logic"""
@@ -147,7 +152,7 @@ class UserRecommender:
             key = ":".join(key_list)
             result = self.redis.read_binary(key)
             if result:
-                logging.debug(result)
+                self.logging.debug(result)
                 item_recommendation = {"id": result[0], "score": result[3]}
                 recommendation_results.append(item_recommendation)
 
@@ -158,11 +163,11 @@ class UserRecommender:
             key = ":".join(key_list)
             result = self.redis.read_binary(key)
             if result:
-                logging.debug(result)
+                self.logging.debug(result)
                 item_recommendation = {"id": result[0], "score": result[3]}
                 recommendation_results.append(item_recommendation)
 
-        logging.debug("Recommendations: {0}".format(recommendation_results))
+        self.logging.debug("Recommendations: {0}".format(recommendation_results))
         return recommendation_results
 
     def __find_related_items_cb(self, downloads):

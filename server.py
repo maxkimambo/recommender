@@ -2,10 +2,15 @@ import json
 from flask import Flask, url_for, jsonify
 from config_loader import ConfigLoader
 
+from UserRecommender import UserRecommender
+
+rec = UserRecommender()
+
+
 cfg = ConfigLoader()
 config = cfg.get_config()
-host = config.get('server').get('host')
-port = config.get('server').get('port')
+host = config.get('server')
+port = config.get('port')
 
 app = Flask(__name__)
 
@@ -30,10 +35,25 @@ def api_root():
     return jsonify({'data': data})
 
 
-@app.route('/recommender')
-def api_recommender():
+@app.route('/recommender/<user_id>')
+def api_recommender(user_id):
 
-    return "recommendations"
+    result = rec.get_top_n_combined_recommendations(user_id, 30)
 
+    return jsonify({'data': result})
+
+@app.route('/recommender/ar/<user_id>')
+def api_ar_recommender(user_id):
+
+    ar = rec.get_topN_ar_recommendations(user_id, 30)
+
+    return jsonify({'data': ar})
+
+@app.route('/recommender/cb/<user_id>')
+def api_ar_recommender(user_id):
+
+    cb = rec.get_topN_ar_recommendations(user_id, 30)
+
+    return jsonify({'data': cb})
 if __name__ == '__main__':
     app.run(host=host, port=port)
