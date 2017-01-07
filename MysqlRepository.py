@@ -74,20 +74,28 @@ class MysqlRepository:
         products.to_sql('product_recommendations', self.conn, flavor='mysql', if_exists='append', index=True)
         self.disconnect()
 
-    def get_document_by_id(self, doc_id):
+    def get_document_by_id(self, doc_id, docs_to_exclude):
 
         conn = self.engine.connect()
-        sel = select([self.recommendations]).where(self.recommendations.c.product_id == doc_id)
+        # sel = select([self.recommendations]).where(self.recommendations.c.product_id == doc_id)
 
         # query excludes other school types from the recommendations
         # in theory a user will only be teaching at one school
+
         query = text(
             "Select * from product_recommendations where school_code = "
             "(select school_code from product_recommendations where product_id =:product_id and `index`=0)"
             "and product_id = :product_id order by similarity_score DESC;")
         result = conn.execute(query, product_id=doc_id)
 
+        # we use this tuple to exclude already seen documents
+        # they add no particular value
+        exclusions = tuple(docs_to_exclude)
+        recommendations = []
         for r in result:
-            print(r)
-
+            if not r["related_product_id"] in exclusions:
+                # recommendation_item = {'related_product_id': r["related_product_id"], 'product_id': r["product_id"], 'tag_similarity': r["tag_similarity"], 'similarity_score': r["similarity_score"]}
+                recommendation_item = {'doc_id': r['related_product_id']}
+                recommendations.append(recommendation_item)
         result.close()
+        return recommendations

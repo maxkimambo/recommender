@@ -18,7 +18,8 @@ class UserRecommender:
         self.config = cfg.get_config()
         self.CUTTOFF_DAYS = timedelta(days=self.config.get('data_days_to_analyze'))
         self.redis = RedisRepository()
-        self.recommendation_counter = 0
+        self.ar_counter = 0
+        self.cb_counter = 0
 
     def __get_all_users(self):
         users = self.repo.get_users()
@@ -47,22 +48,34 @@ class UserRecommender:
 
     def generate_ar_recommendations_for_user(self, user_id, downloads):
         """Generates recommendatios for user by Associative rule mining"""
-
+        recommendation_type = "ar"
         # go through the list of downloads ids and find related docs
         recommendations = self.__find_related_items_ar(downloads)
         if recommendations:
-            self.recommendation_counter += len(recommendations)
-            self.record_user_recommendations(user_id, recommendations)
+            self.ar_counter += len(recommendations)
+            self.record_user_recommendations(user_id, recommendation_type, recommendations)
 
     def generate_cb_recommendations_for_user(self, user_id, downloads):
         """Generates recommendations for a user by CB Filtering"""
+        recommendation_type = "cb"
         recommendations = self.__find_related_items_cb(downloads)
 
-        self.record_user_recommendations(user_id, recommendations)
+        #recs are a list of dictionaries
+        # [{'product_id': '50464e9ab92d2a47a4c94595', 'related_product_id': '50464e87b92d2a47a4c938b2',
+        # 'similarity_score': 54.197352130201196, 'tag_similarity': 0.04769175627333097}]
 
-    def record_user_recommendations(self, user_id, recommendations):
+        # trying this format for now ignore above
+        #[{'doc_id': '51260e38d8d2ce66c47fdd04'}]
+
+        if recommendations:
+            self.record_user_recommendations(user_id, recommendation_type, recommendations)
+
+        self.cb_counter += len(recommendations)
+        logging.debug("Generated {0} recommendations for user {1}".format(len(recommendations), user_id))
+
+    def record_user_recommendations(self, user_id, rec_type, recommendations):
         """Stores generated recommendations in Redis"""
-        key = "recommendation:{0}".format(user_id)
+        key = "recommendation:{1}:{0}".format(user_id, rec_type)
         self.redis.store_binary(key, recommendations)
 
     def process_ar_recommendations(self):
@@ -78,7 +91,7 @@ class UserRecommender:
             self.generate_ar_recommendations_for_user(user.id, downloads)
             counter += 1
 
-        logging.debug("Generated {1} recommendations for {0} users".format(counter, self.recommendation_counter))
+        logging.debug("Generated {1} AR recommendations for {0} users".format(counter, self.ar_counter))
 
     def process_cb_recommendations(self):
         """Drives the content based recommendation generation algorithm"""
@@ -90,7 +103,7 @@ class UserRecommender:
             self.generate_cb_recommendations_for_user(user.id, downloads)
             counter += 1
 
-        logging.debug("Generated recommendations for {0} users".format(self.recommendation_counter))
+        logging.debug("Generated {1} CB recommendations for {0} users".format(counter, self.cb_counter))
 
     def __find_related_items_ar(self, downloads):
         """Finds related items and holds filtering logic"""
@@ -129,4 +142,7 @@ class UserRecommender:
         """Finds related items and holds filtering logic"""
         recommendation_result = []
         for doc in downloads:
-            self.mysql.get_document_by_id(doc)
+            recs = self.mysql.get_document_by_id(doc, downloads)
+            if recs:
+                recommendation_result += recs
+        return recommendation_result
