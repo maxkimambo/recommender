@@ -21,7 +21,7 @@ class AssociativeRulesRecommender:
 
     def find_association_rules(self, transactions):
 
-        rules = fim.arules(transactions, supp=-3,  zmin=1, zmax=5, report="SC")
+        rules = fim.arules(transactions, supp=-3,  zmin=1, zmax=6, report="SC")
 
         return rules
 

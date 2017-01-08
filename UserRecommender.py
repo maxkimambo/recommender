@@ -36,8 +36,8 @@ class UserRecommender:
         for d in downloads:
             if d["download_time"] > self.cuttoff_date:
                 recent_downloads.append(d["doc_id"])
-        if len(recent_downloads):
-            self.logging.debug("Recent downloads identified : {0}".format(len(recent_downloads)))
+        # if len(recent_downloads):
+        #     self.logging.debug("Recent downloads identified : {0}".format(len(recent_downloads)))
         return recent_downloads
 
     def get_topN_ar_recommendations(self, user_id, limit=10):
@@ -50,7 +50,7 @@ class UserRecommender:
 
             for rec in rec_list:
                 # first item is the recommendation
-                top_n.append(rec[0])
+                top_n.append(rec.get("id"))
 
             self.logging.debug("recs for user {0} : {1}".format(user_id, top_n))
 
@@ -152,7 +152,6 @@ class UserRecommender:
             key = ":".join(key_list)
             result = self.redis.read_binary(key)
             if result:
-                self.logging.debug(result)
                 item_recommendation = {"id": result[0], "score": result[3]}
                 recommendation_results.append(item_recommendation)
 
@@ -163,11 +162,10 @@ class UserRecommender:
             key = ":".join(key_list)
             result = self.redis.read_binary(key)
             if result:
-                self.logging.debug(result)
                 item_recommendation = {"id": result[0], "score": result[3]}
                 recommendation_results.append(item_recommendation)
 
-        self.logging.debug("Recommendations: {0}".format(recommendation_results))
+        # self.logging.debug("Recommendations: {0}".format(recommendation_results))
         return recommendation_results
 
     def __find_related_items_cb(self, downloads):

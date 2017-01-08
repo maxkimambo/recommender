@@ -50,9 +50,9 @@ def api_ar_recommender(user_id):
     return jsonify({'data': ar})
 
 @app.route('/recommender/cb/<user_id>')
-def api_ar_recommender(user_id):
+def api_cb_recommender(user_id):
 
-    cb = rec.get_topN_ar_recommendations(user_id, 30)
+    cb = rec.get_topN_cb_recommendations(user_id, 30)
 
     return jsonify({'data': cb})
 if __name__ == '__main__':
