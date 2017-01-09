@@ -110,8 +110,8 @@ class ContentBasedFilter:
 
         document_similarity_table = doc_similarity_matrix.sort_values(["similarity", "tag_similarity"], ascending=False)
 
-        document_similarity_table["similarity_score"] = (document_similarity_table["tag_similarity"] +
-                                                         document_similarity_table["similarity"] / 2) * 100
+        document_similarity_table["similarity_score"] = ((document_similarity_table["tag_similarity"] +
+                                                         document_similarity_table["similarity"]) / 2) * 100
 
         document_similarity_table = document_similarity_table.sort_values("similarity_score", ascending=False)
 

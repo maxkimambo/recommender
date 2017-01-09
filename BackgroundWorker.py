@@ -4,6 +4,7 @@ from MysqlRepository import MysqlRepository
 import time
 from log import Logger
 
+
 class BackgroundWorker:
     def __init__(self):
         self.ar = AssociativeRulesRecommender()
@@ -27,13 +28,6 @@ class BackgroundWorker:
 
         self.logging.debug("Rule generation took {0} seconds".format(ar_end - ar_start))
 
-    def generate_rule_based_recommendations(self):
-        pass
-
-        # get recent downloads for each user
-        # compare against the rules
-        # write out recommendations
-
     def calculate_content_based_similarity(self):
 
         cf_start = time.time()
@@ -51,10 +45,3 @@ class BackgroundWorker:
 
         cf_end = time.time()
         self.logging.debug('finished generating CB recommendations in {0} seconds'.format(cf_end - cf_start))
-
-    def generate_content_based_recommendations(self):
-        pass
-
-        # get recent downloads for each user
-        # compare against the rules
-        # write out recommendations
