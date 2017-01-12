@@ -88,7 +88,7 @@ class MysqlRepository:
 
         query = text(
             "Select * from product_recommendations where school_code = "
-            "(select school_code from product_recommendations where product_id =:product_id and `index`=0)"
+            "(select school_code from product_recommendations where product_id =:product_id and `index`=0 LIMIT 1)"
             "and product_id = :product_id order by similarity_score DESC;")
         result = conn.execute(query, product_id=doc_id)
 
