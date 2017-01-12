@@ -135,6 +135,7 @@ class Worker:
                 document_list.append(self.repo.get_doc_by_id(d))
 
             # counter += 1
+            self.logging.debug("Fetched {0} data for documents for product matrix".format(len(document_list)))
             yield document_list
             document_list.clear()
 

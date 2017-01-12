@@ -1,7 +1,7 @@
 import mysql.connector as db
 from sqlalchemy import create_engine, MetaData, TEXT, Integer, Table, Column, ForeignKey, Sequence
 from sqlalchemy.sql import select, text
-
+from log import Logger
 from config_loader import ConfigLoader
 
 class MysqlRepository:
@@ -14,11 +14,12 @@ class MysqlRepository:
         self.mysql_user = self.config.get('mysql_user')
         self.mysql_pass = self.config.get('mysql_pass')
         self.mysql_database = self.config.get('mysql_database')
-
+        self.logging = Logger()
         conn_string = "mysql+mysqldb://{0}:{1}@{2}/{3}".format(self.mysql_user, self.mysql_pass,
                                                                self.mysql_host, self.mysql_database)
         self.engine = create_engine(conn_string)
         meta = MetaData(bind=self.engine)
+        self.dbconn = None
 
         ### Recommendations Table ###
         self.recommendations = Table('product_recommendations', meta,
@@ -34,11 +35,11 @@ class MysqlRepository:
 
 
     def connect(self):
+
         try:
             self.conn = db.connect(user=self.mysql_user, password=self.mysql_pass,
                                    host=self.mysql_host, database=self.mysql_database)
-            cursor = self.conn.cursor()
-            return cursor
+
         except db.Error as err:
             print(err)
 
@@ -70,9 +71,12 @@ class MysqlRepository:
         meta.create_all(self.engine)
 
     def populate_data(self, products):
-        self.connect()
+        if not self.conn:
+            self.connect()
+
         products.to_sql('product_recommendations', self.conn, flavor='mysql', if_exists='append', index=True)
-        self.disconnect()
+
+        self.logging.debug('Wrote {0} rows to mysql'.format(len(products)))
 
     def get_document_by_id(self, doc_id, docs_to_exclude):
 

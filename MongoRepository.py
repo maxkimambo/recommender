@@ -214,7 +214,6 @@ class MongoRepository:
                         else:
                             doc_list = [doc_id]
                             transaction = {transaction_id: doc_list}
-            # print("Got {0} transactions to process for user {1}".format(counter, u.id))
             return transaction
 
         except TypeError as err:

@@ -1,10 +1,10 @@
 from BackgroundWorker import BackgroundWorker
 from UserRecommender import UserRecommender
 import threading
+from multiprocess import Process
 from log import Logger
 import sys
 import getopt
-
 
 
 def usage():
@@ -15,29 +15,29 @@ def usage():
     print('      -h or --help to display this message')
     print("-------------------------------------------------------------------")
 
-def main(sargs):
 
+def main(sargs):
     bgw = BackgroundWorker()
     ur = UserRecommender()
 
     def start_cb_background_worker():
         log.debug("Started CB based model generation in the background process")
-        cb_thread = threading.Thread(name="CB filter thread", target=bgw.calculate_content_based_similarity)
-        cb_thread.start()
+        cb_process = Process(target=bgw.calculate_content_based_similarity)
+        cb_process.start()
 
     def start_ar_background_worker():
         log.debug("Started Association rules mining in the background process.")
-        ar_thread = threading.Thread(name="AR thread", target=bgw.generate_associative_rules)
-        ar_thread.start()
+        ar_process = Process(target=bgw.generate_associative_rules)
+        ar_process.start()
 
     def update_recommendations_cb():
         log.debug("Started updating recommendations based on  Collaborative Filtering in the background process.")
-        cb = threading.Thread(name="CB recommender", target=ur.process_cb_recommendations())
+        cb = Process(target=ur.process_cb_recommendations)
         cb.start()
 
     def update_recommendations_ar():
         log.debug("Started updating recommendations based on  Association rules mining in the background process.")
-        ar = threading.Thread(name="AR recommender", target=ur.process_ar_recommendations)
+        ar = Process(target=ur.process_ar_recommendations)
         ar.start()
 
     log = Logger()
@@ -56,6 +56,10 @@ def main(sargs):
                 update_recommendations_ar()
             elif opt[0] in ('-h', '--help'):
                 usage()
+            elif opt[0] in ('--ar'):
+                start_ar_background_worker()
+            elif opt[0] in ('--cb'):
+                start_cb_background_worker()
             else:
                 usage()
     except getopt.GetoptError:
@@ -63,7 +67,7 @@ def main(sargs):
         usage()
         sys.exit(2)
 
+
 if __name__ == "__main__":
     args = sys.argv[1:]
     main(args)
-

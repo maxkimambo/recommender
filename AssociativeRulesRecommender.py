@@ -7,7 +7,6 @@ class AssociativeRulesRecommender:
         self.redis = RedisRepository()
 
     def get_transactions(self):
-
         repo = MongoRepository()
         users_transactions = repo.get_all_user_downloads()
         transactions = []
@@ -21,7 +20,7 @@ class AssociativeRulesRecommender:
 
     def find_association_rules(self, transactions):
 
-        rules = fim.arules(transactions, supp=-3,  zmin=1, zmax=6, report="SC")
+        rules = fim.arules(transactions, supp=-3,  zmin=1, zmax=6, conf=60, report="SC")
 
         return rules
 

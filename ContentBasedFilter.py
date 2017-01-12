@@ -46,6 +46,9 @@ class ContentBasedFilter:
         documents_data = worker.get_product_matrix_data(product_matrix)
 
         for doc_col in documents_data:
+
+            self.logging.debug("Processing batch of {0} matrix docs".format(len(doc_col)))
+
             # we dont want to process single item lists
             if len(doc_col) > 2:
                 self.logging.debug("generating recommendations....")

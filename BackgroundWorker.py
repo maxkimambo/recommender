@@ -3,6 +3,7 @@ from ContentBasedFilter import ContentBasedFilter
 from MysqlRepository import MysqlRepository
 import time
 from log import Logger
+import threading
 
 
 class BackgroundWorker:
@@ -37,11 +38,8 @@ class BackgroundWorker:
         self.logging.debug('Generating content based recommendations')
         product_recommendations = recommender.generate_recommendations()
 
-        self.logging.debug('Done ...')
-
-        self.logging.debug('Writing recommendations to Mysql...')
         for rec in product_recommendations:
+            self.logging.debug('Writing {0} recommendations to Mysql...'.format(len(rec)))
             repo.populate_data(rec)
-
         cf_end = time.time()
         self.logging.debug('finished generating CB recommendations in {0} seconds'.format(cf_end - cf_start))
