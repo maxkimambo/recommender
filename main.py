@@ -12,6 +12,8 @@ def usage():
     print('usage..')
     print('      -u or --update to rebuild the similarity model')
     print('      -r or --recommend to rebuild the recommendations database')
+    print('      --cb to generate CB model')
+    print('      --ar to generate AR model')
     print('      -h or --help to display this message')
     print("-------------------------------------------------------------------")
 
@@ -43,8 +45,8 @@ def main(sargs):
     log = Logger()
 
     ## Parsing command line options
-    long_options = ["update", "ar", "cb", "recommend=", "help"]
-    short_options = "urh"
+    long_options = ["update", "ar", "cb", "reccb", "rules",  "recommend=", "help"]
+    short_options = "urhaf"
     try:
         opts, arg = getopt.getopt(sargs, short_options, long_options)
         for opt in opts:
@@ -60,6 +62,10 @@ def main(sargs):
                 start_ar_background_worker()
             elif opt[0] in ('--cb'):
                 start_cb_background_worker()
+            elif opt[0] in ('-a', '--rules'):
+                update_recommendations_ar()
+            elif opt[0] in ('-f', '--reccb'):
+                update_recommendations_cb()
             else:
                 usage()
     except getopt.GetoptError:
